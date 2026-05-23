@@ -265,3 +265,7 @@ Fully deployed production-style system.
 - Never copy blindly
 - Backend quality > frontend beauty
 - One deep project > many small apps
+
+
+# Important 
+ik python basic but not advance so build in a way like you are teaching me like don't add all pkgs once or create files all once go step by step teach every step what it do why use this pkg  and save progess in progress.md too 
