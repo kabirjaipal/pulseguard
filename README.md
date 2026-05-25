@@ -269,3 +269,7 @@ Fully deployed production-style system.
 
 # Important 
 ik python basic but not advance so build in a way like you are teaching me like don't add all pkgs once or create files all once go step by step teach every step what it do why use this pkg  and save progess in progress.md too 
+
+## Development Rules
+- **No Automatic Installation:** The AI agent must not execute heavy commands or package installations (like `pip install` or `apt install`) directly. It should present the commands to the user to run manually.
+- **Package Tracking:** All project dependencies must be listed and tracked in `server/requirements.txt`.

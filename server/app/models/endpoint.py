@@ -14,6 +14,8 @@ class Endpoint(Base):
     is_active = Column(Boolean, default=True)
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_checked_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     project = relationship("Project", back_populates="endpoints")
+    results = relationship("MonitoringResult", back_populates="endpoint", cascade="all, delete-orphan")

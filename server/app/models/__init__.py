@@ -4,5 +4,6 @@ from app.core.database import Base
 from app.models.user import User
 from app.models.project import Project
 from app.models.endpoint import Endpoint
+from app.models.monitoring_result import MonitoringResult
 
-__all__ = ["Base", "User", "Project", "Endpoint"]
+__all__ = ["Base", "User", "Project", "Endpoint", "MonitoringResult"]

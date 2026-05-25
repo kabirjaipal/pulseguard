@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # 3. Redis configuration for Celery
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     # Pydantic Settings config: tells Pydantic to read from the ".env" file in root
     model_config = SettingsConfigDict(
         env_file=".env",
