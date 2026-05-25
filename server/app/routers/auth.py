@@ -6,10 +6,11 @@ from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User
 from app.schemas.user import UserCreate, UserOut, Token
+from app.core.limiter import RateLimiter
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
-@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(requests_limit=10, window_seconds=60, scope="auth_signup"))])
 def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     """Register a new user in the platform."""
     # 1. Check if user already exists
@@ -29,7 +30,7 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     
     return new_user
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, dependencies=[Depends(RateLimiter(requests_limit=10, window_seconds=60, scope="auth_login"))])
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     Authenticate user and return a JWT access token.

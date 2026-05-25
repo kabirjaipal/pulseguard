@@ -12,9 +12,9 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
   - Celery workers, Redis setup, background jobs, automatic endpoint monitoring.
 - [x] **Phase 3 — Alert System**
   - Failure detection, retry strategies, email/webhook alerts.
-- [ ] **Phase 4 — Performance & Scalability** 👈 *Next Step*
+- [x] **Phase 4 — Performance & Scalability**
   - Redis caching, rate limiting, database indexing.
-- [ ] **Phase 5 — AI Incident Analysis**
+- [ ] **Phase 5 — AI Incident Analysis** 👈 *Next Step*
   - OpenAI API integration, log analysis, root-cause summaries.
 - [ ] **Phase 6 — Real-Time Dashboard**
   - Next.js frontend, WebSockets, live status updates.
@@ -67,3 +67,19 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
 1. **Celery Retries (`self.retry`)**: Allows worker tasks to retry execution when they encounter recoverable exceptions (e.g. transient DNS glitches, timeouts). We use it to ensure we don't alert users on simple temporary blips.
 2. **State Transition Alerts**: Alerts are only dispatched when the status actually changes (e.g. healthy $\rightarrow$ failing or failing $\rightarrow$ healthy). This avoids spamming notifications on every subsequent fail/success run.
 3. **Webhooks**: HTTP POST callbacks that allow PulseGuard to integrate with external systems (like Slack, Discord, or custom servers) when incidents happen.
+
+---
+
+### Phase 4 — Performance & Scalability
+*Status: Complete*
+
+- [x] Database Indexing (Added `index=True` to `Project.owner_id`, `Endpoint.project_id`, `MonitoringResult.endpoint_id`, and `MonitoringResult.checked_at` in the SQLAlchemy models to optimize index lookup performance for SQL joins and orders).
+- [x] Redis Client Setup (Created `app/core/redis_client.py` setting up a unified connection pool using configuration parameters).
+- [x] Result Caching (Configured background tasks to save the latest JSON-serialized check result of each endpoint into Redis, using an automatic expire TTL based on the check interval).
+- [x] Latest Result Route (Created `GET /api/endpoints/{endpoint_id}/latest` retrieving the cached status instantly from Redis, falling back to DB query on cache miss).
+- [x] Rate Limiting (Implemented a custom, highly performant Redis-backed Rate Limiter dependency using atomic operations. Applied to public routes `/signup` and `/login` [10 req/min/IP] and endpoints router [60 req/min/user]).
+
+#### Key Concept Explanations:
+1. **Database Indexing**: Creates lookup tables to speed up query execution. By indexing fields used in `WHERE` clauses (e.g. `owner_id`, `project_id`) and sorting (e.g. `checked_at`), we ensure queries complete in sub-millisecond ranges instead of scanning entire tables.
+2. **Caching**: Storing computation results in an ultra-fast, in-memory store (Redis) to serve subsequent queries quickly. This avoids repetitive queries to the primary database, lowering load and increasing throughput.
+3. **Atomic Rate Limiting**: Restricting client requests by tracking counts over time. By using Redis's atomic `INCR` command and setting a short-lived key per request bucket, we can implement high-performance protection against DDoS, brute-force, or api abuse without adding custom locks.

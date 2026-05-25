@@ -1,5 +1,6 @@
 import time
 import datetime
+import json
 import httpx
 from celery.exceptions import MaxRetriesExceededError
 from app.core.celery_app import celery_app
@@ -7,6 +8,7 @@ from app.core.database import SessionLocal
 from app.models.endpoint import Endpoint
 from app.models.monitoring_result import MonitoringResult
 from app.core.notifications import dispatch_alert
+from app.core.redis_client import redis_client
 
 @celery_app.task(name="app.core.tasks.scheduler_task")
 def scheduler_task():
@@ -140,6 +142,28 @@ def ping_endpoint_task(self, endpoint_id: int):
                 
         db.add(endpoint)
         db.commit()
+        
+        # Cache the latest result in Redis as a JSON string
+        try:
+            cache_payload = {
+                "id": result.id,
+                "endpoint_id": endpoint.id,
+                "status_code": status_code,
+                "response_time_ms": response_time_ms,
+                "is_healthy": is_healthy,
+                "error_message": error_message,
+                "checked_at": result.checked_at.isoformat() if result.checked_at else datetime.datetime.now(datetime.timezone.utc).isoformat()
+            }
+            # Set TTL to 2x check_interval (minimum 120s)
+            expire_seconds = max(endpoint.check_interval * 2, 120)
+            redis_client.setex(
+                f"endpoint:{endpoint.id}:latest",
+                expire_seconds,
+                json.dumps(cache_payload)
+            )
+        except Exception as cache_err:
+            # Log cache failures to console without failing the ping task execution
+            print(f"Error writing to Redis cache for endpoint {endpoint.id}: {str(cache_err)}")
         
         return {
             "endpoint_id": endpoint_id,

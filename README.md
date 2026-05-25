@@ -119,7 +119,7 @@ Fast API responses with reduced DB load.
 
 ## Learn/Build
 
-- OpenAI API integration
+- Groq API integration
 - prompt engineering basics
 
 ## Features
