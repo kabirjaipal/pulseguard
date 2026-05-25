@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     SMTP_FROM_EMAIL: str = "alerts@pulseguard.io"
 
+    # 5. OpenRouter AI configuration
+    OPENROUTER_API_KEY: str | None = None
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    AI_MODEL: str = "meta-llama/llama-3-8b-instruct:free"
+
     # Pydantic Settings config: tells Pydantic to read from the ".env" file in root
     model_config = SettingsConfigDict(
         env_file=".env",

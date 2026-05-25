@@ -7,8 +7,10 @@ from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.endpoint import Endpoint
 from app.models.monitoring_result import MonitoringResult
+from app.models.incident_analysis import IncidentAnalysis
 from app.core.notifications import dispatch_alert
 from app.core.redis_client import redis_client
+from app.core.ai import generate_incident_analysis
 
 @celery_app.task(name="app.core.tasks.scheduler_task")
 def scheduler_task():
@@ -138,7 +140,42 @@ def ping_endpoint_task(self, endpoint_id: int):
             # Alert on transition from healthy to failing
             if endpoint.consecutive_failures >= 3 and endpoint.status == "healthy":
                 endpoint.status = "failing"
-                dispatch_alert(endpoint, project, owner, is_recovery=False, error_message=error_message)
+                
+                # Fetch recent failed results to send to AI
+                recent_failures = db.query(MonitoringResult).filter(
+                    MonitoringResult.endpoint_id == endpoint.id,
+                    MonitoringResult.is_healthy == False
+                ).order_by(MonitoringResult.checked_at.desc()).limit(5).all()
+                
+                # Generate AI Incident Analysis
+                ai_analysis = generate_incident_analysis(endpoint, recent_failures)
+                
+                # Save the AI incident analysis to the database
+                analysis_log = IncidentAnalysis(
+                    endpoint_id=endpoint.id,
+                    summary=ai_analysis.get("summary", "No summary generated"),
+                    suggestions=ai_analysis.get("suggestions", "No suggestions generated"),
+                    raw_logs=json.dumps([
+                        {
+                            "status_code": r.status_code,
+                            "latency_ms": r.response_time_ms,
+                            "is_healthy": r.is_healthy,
+                            "error_message": r.error_message,
+                            "checked_at": r.checked_at.isoformat() if r.checked_at else None
+                        } for r in recent_failures
+                    ])
+                )
+                db.add(analysis_log)
+                
+                # Dispatch alert notification with the AI analysis summary embedded
+                dispatch_alert(
+                    endpoint=endpoint,
+                    project=project,
+                    owner=owner,
+                    is_recovery=False,
+                    error_message=error_message,
+                    ai_analysis=ai_analysis
+                )
                 
         db.add(endpoint)
         db.commit()

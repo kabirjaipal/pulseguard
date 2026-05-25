@@ -21,3 +21,4 @@ class Endpoint(Base):
     # Relationships
     project = relationship("Project", back_populates="endpoints")
     results = relationship("MonitoringResult", back_populates="endpoint", cascade="all, delete-orphan")
+    analyses = relationship("IncidentAnalysis", back_populates="endpoint", cascade="all, delete-orphan")

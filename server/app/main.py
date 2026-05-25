@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.core.database import engine
 from app.models import Base
-from app.routers import auth, projects, endpoints
+from app.routers import auth, projects, endpoints, incidents
 
 # Create database tables. In production we would use Alembic migrations,
 # but for learning and quick development, we let SQLAlchemy generate them.
@@ -18,6 +18,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(endpoints.router)
+app.include_router(incidents.router)
 
 # 2. Define a basic route (endpoint) using a path decorator.
 # "@app.get('/')" tells FastAPI that this function handles GET requests to the root path.

@@ -56,7 +56,7 @@ def send_webhook_alert(webhook_url: str, payload: dict):
     except Exception as e:
         print(f"Failed to trigger webhook alert: {str(e)}")
 
-def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: str | None = None):
+def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: str | None = None, ai_analysis: dict | None = None):
     """
     Coordinates and dispatches alerts (emails & webhooks) to the user.
     """
@@ -75,6 +75,16 @@ def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: s
             f"PulseGuard Platform"
         )
     else:
+        # Build AI Analysis section if present
+        ai_section = ""
+        if ai_analysis:
+            ai_section = (
+                f"\n🤖 AI INCIDENT ANALYSIS:\n"
+                f"Summary:\n{ai_analysis.get('summary', 'N/A')}\n\n"
+                f"Troubleshooting Suggestions:\n{ai_analysis.get('suggestions', 'N/A')}\n"
+                f"==================================================\n"
+            )
+            
         body = (
             f"Hello,\n\n"
             f"Alert! Your endpoint '{endpoint.name}' in project '{project.name}' is failing repeatedly.\n\n"
@@ -83,6 +93,7 @@ def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: s
             f"- URL: {endpoint.url} ({endpoint.method})\n"
             f"- Status: Failing (Offline)\n"
             f"- Error Message: {error_message or 'Unknown connection issue'}\n\n"
+            f"{ai_section}"
             f"Please check your server logs immediately.\n\n"
             f"PulseGuard Platform"
         )
@@ -110,6 +121,7 @@ def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: s
                 "name": project.name
             },
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "error_message": error_message
+            "error_message": error_message,
+            "ai_analysis": ai_analysis
         }
         send_webhook_alert(project.webhook_url, webhook_payload)

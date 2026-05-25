@@ -14,9 +14,9 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
   - Failure detection, retry strategies, email/webhook alerts.
 - [x] **Phase 4 — Performance & Scalability**
   - Redis caching, rate limiting, database indexing.
-- [ ] **Phase 5 — AI Incident Analysis** 👈 *Next Step*
-  - OpenAI API integration, log analysis, root-cause summaries.
-- [ ] **Phase 6 — Real-Time Dashboard**
+- [x] **Phase 5 — AI Incident Analysis**
+  - Groq API integration, log analysis, root-cause summaries.
+- [ ] **Phase 6 — Real-Time Dashboard** 👈 *Next Step*
   - Next.js frontend, WebSockets, live status updates.
 - [ ] **Phase 7 — Production Engineering**
   - Structured logging, testing with pytest, CI/CD.
@@ -83,3 +83,20 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
 1. **Database Indexing**: Creates lookup tables to speed up query execution. By indexing fields used in `WHERE` clauses (e.g. `owner_id`, `project_id`) and sorting (e.g. `checked_at`), we ensure queries complete in sub-millisecond ranges instead of scanning entire tables.
 2. **Caching**: Storing computation results in an ultra-fast, in-memory store (Redis) to serve subsequent queries quickly. This avoids repetitive queries to the primary database, lowering load and increasing throughput.
 3. **Atomic Rate Limiting**: Restricting client requests by tracking counts over time. By using Redis's atomic `INCR` command and setting a short-lived key per request bucket, we can implement high-performance protection against DDoS, brute-force, or api abuse without adding custom locks.
+
+---
+
+### Phase 5 — AI Incident Analysis
+*Status: Complete*
+
+- [x] Dependencies (Added `groq>=0.9.0` to track the official Groq Python SDK).
+- [x] Database Model (Created `IncidentAnalysis` table to persist root-cause summary, troubleshooting suggestions, and raw serialized logs).
+- [x] Configuration Settings (Added `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, and `AI_MODEL` support in `.env` and `app/core/config.py`).
+- [x] AI Core Integration (Created `app/core/ai.py` communicating with OpenRouter's completions endpoint in JSON Mode. Includes a smart mock fallback module that tailors local diagnostics based on HTTP error status or network logs if no key is present).
+- [x] Auto-Triggered Background Analysis (Modified Celery task in `tasks.py` to automatically fetch logs, generate AI analyses, write to DB, and embed the analysis in alert notifications when an endpoint fails).
+- [x] Router & Schema Setup (Built Pydantic schemas in `schemas/incident_analysis.py` and router `routers/incidents.py` enabling endpoints to retrieve analyses and manually trigger them).
+
+#### Key Concept Explanations:
+1. **OpenRouter API**: A unified routing interface to access various LLMs (like Llama 3). We leverage it to get real-time diagnostic summaries of why our servers are failing in milliseconds.
+2. **OpenRouter JSON Mode**: Setting the response format type to `json_object` forces the LLM to output valid JSON matching our requested keys. This eliminates flaky regex parser errors in standard text outputs.
+3. **Mock AI Fallback**: Providing high-quality placeholder mock diagnostics in development environments so the platform remains fully functional and informative without incurring immediate API key setup costs.
