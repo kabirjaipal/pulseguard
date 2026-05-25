@@ -15,6 +15,8 @@ class Endpoint(Base):
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_checked_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String, default="healthy", nullable=False)
+    consecutive_failures = Column(Integer, default=0, nullable=False)
 
     # Relationships
     project = relationship("Project", back_populates="endpoints")

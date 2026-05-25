@@ -15,6 +15,9 @@ class EndpointOut(EndpointBase):
     id: int
     project_id: int
     created_at: datetime
+    last_checked_at: datetime | None = None
+    status: str
+    consecutive_failures: int
 
     model_config = {
         "from_attributes": True

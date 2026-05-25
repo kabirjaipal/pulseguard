@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     # 3. Redis configuration for Celery
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # 4. SMTP configuration for email alerts
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM_EMAIL: str = "alerts@pulseguard.io"
+
     # Pydantic Settings config: tells Pydantic to read from the ".env" file in root
     model_config = SettingsConfigDict(
         env_file=".env",

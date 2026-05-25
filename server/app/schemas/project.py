@@ -4,6 +4,7 @@ from datetime import datetime
 class ProjectBase(BaseModel):
     name: str
     description: str | None = None
+    webhook_url: str | None = None
 
 class ProjectCreate(ProjectBase):
     pass

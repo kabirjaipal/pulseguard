@@ -1,10 +1,12 @@
 import time
 import datetime
 import httpx
+from celery.exceptions import MaxRetriesExceededError
 from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.endpoint import Endpoint
 from app.models.monitoring_result import MonitoringResult
+from app.core.notifications import dispatch_alert
 
 @celery_app.task(name="app.core.tasks.scheduler_task")
 def scheduler_task():
@@ -48,11 +50,12 @@ def scheduler_task():
     finally:
         db.close()
 
-@celery_app.task(name="app.core.tasks.ping_endpoint_task")
-def ping_endpoint_task(endpoint_id: int):
+@celery_app.task(bind=True, max_retries=3, name="app.core.tasks.ping_endpoint_task")
+def ping_endpoint_task(self, endpoint_id: int):
     """
     Performs an HTTP request to the endpoint, records response time and status,
     and saves the results into the MonitoringResult table.
+    Retries up to 3 times on transient failures/timeouts with a 5-second delay.
     """
     db = SessionLocal()
     try:
@@ -85,12 +88,20 @@ def ping_endpoint_task(endpoint_id: int):
                 is_healthy = True
             else:
                 error_message = f"Non-2xx status code returned: {status_code}"
+                # Retry for transient application/server errors (e.g. 500, 503)
+                try:
+                    raise self.retry(countdown=5)
+                except MaxRetriesExceededError:
+                    pass # Out of retries, mark as unhealthy
                 
         except httpx.RequestError as exc:
             # Captures timeouts, connection errors, DNS errors, etc.
-            response_time_ms = int((time.time() - start_time) * 1000)
-            is_healthy = False
-            error_message = f"Network request failed: {str(exc)}"
+            try:
+                raise self.retry(exc=exc, countdown=5)
+            except MaxRetriesExceededError:
+                response_time_ms = int((time.time() - start_time) * 1000)
+                is_healthy = False
+                error_message = f"Network request failed after retries: {str(exc)}"
             
         except Exception as exc:
             response_time_ms = int((time.time() - start_time) * 1000)
@@ -106,6 +117,28 @@ def ping_endpoint_task(endpoint_id: int):
             error_message=error_message
         )
         db.add(result)
+        
+        # 4. State transition and notifications
+        project = endpoint.project
+        owner = project.owner
+        
+        if is_healthy:
+            # Recovery: was failing, now healthy
+            if endpoint.status == "failing":
+                endpoint.status = "healthy"
+                endpoint.consecutive_failures = 0
+                dispatch_alert(endpoint, project, owner, is_recovery=True)
+            else:
+                endpoint.consecutive_failures = 0
+        else:
+            # Failure increment
+            endpoint.consecutive_failures += 1
+            # Alert on transition from healthy to failing
+            if endpoint.consecutive_failures >= 3 and endpoint.status == "healthy":
+                endpoint.status = "failing"
+                dispatch_alert(endpoint, project, owner, is_recovery=False, error_message=error_message)
+                
+        db.add(endpoint)
         db.commit()
         
         return {
@@ -113,6 +146,8 @@ def ping_endpoint_task(endpoint_id: int):
             "status_code": status_code,
             "latency_ms": response_time_ms,
             "is_healthy": is_healthy,
+            "status": endpoint.status,
+            "consecutive_failures": endpoint.consecutive_failures,
             "error": error_message
         }
     except Exception as e:
