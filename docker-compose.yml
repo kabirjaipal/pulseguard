@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: pulseguard-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pulseguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pulseguard-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: pulseguard-web
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./server:/workspace
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: pulseguard-celery-worker
+    command: celery -A app.core.tasks.celery_app worker --loglevel=info
+    volumes:
+      - ./server:/workspace
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: pulseguard-celery-beat
+    command: celery -A app.core.tasks.celery_app beat --loglevel=info
+    volumes:
+      - ./server:/workspace
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: pulseguard-client
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost
+      - NEXT_PUBLIC_WS_URL=ws://localhost
+    depends_on:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    container_name: pulseguard-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - client
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: pulseguard-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - web
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: pulseguard-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:

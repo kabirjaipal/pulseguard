@@ -10,6 +10,7 @@ from app.models import Base
 from app.routers import auth, projects, endpoints, incidents, websocket
 from app.core.websocket_manager import redis_pubsub_listener
 from app.core.logging_config import setup_logging
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Initialize structured logging
 setup_logging()
@@ -38,6 +39,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+# Initialize Prometheus FastAPI Instrumentator
+Instrumentator().instrument(app).expose(app)
 
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):

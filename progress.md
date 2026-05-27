@@ -20,8 +20,9 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
   - Next.js frontend, WebSockets, live status updates.
 - [x] **Phase 7 — Production Engineering**
   - Structured logging, testing with pytest, CI/CD.
-- [ ] **Phase 8 — Deployment & Observability** 👈 *Next Step*
+- [x] **Phase 8 — Deployment & Observability**
   - Docker Compose, Prometheus, Grafana, Nginx.
+
 
 ---
 
@@ -127,3 +128,19 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
 1. **Centralized Error Interception**: Global exception handlers in FastAPI act as middlewares intercepting exceptions raised inside routes or DB operations. This prevents internal database stack traces or server paths from leaking in API responses, improving application security.
 2. **Structured Logging**: Formatting log messages in JSON format so log collectors (like Elasticsearch or Loki) can index parameters (such as `timestamp`, `level`, `line`, `message`, and `logger`) as queryable fields rather than raw block text.
 3. **Mocking External Engines (Redis/Celery)**: Mocking network/broker layers in tests allows testing isolated routes locally without needing real operational workers, dramatically speeding up verification runs.
+
+---
+
+### Phase 8 — Deployment & Observability
+*Status: Complete*
+
+- [x] Backend metrics exporter (Integrated `prometheus-fastapi-instrumentator` to auto-collect latency and requests count on the backend).
+- [x] Frontend & Backend Dockerfiles (Created production-grade Dockerfiles for React/Next.js frontend and FastAPI/Celery backend services).
+- [x] Docker Compose Orchestration (Configured a multi-service orchestration setup coordinating DB, Redis, web server, workers, beat, frontend client, proxy, and monitoring tools).
+- [x] Gateway Reverse Proxy (Designed Nginx custom routing configuration to serve frontend UI and proxy `/api` and `/ws` to the backend on a single port).
+- [x] Telemetry configuration (Added Prometheus scraper targeting the FastAPI app, integrated with Grafana).
+
+#### Key Concept Explanations:
+1. **Containerization**: Wrapping software inside isolated operating-system-level containers (Docker) to guarantee that the application runs identically on development machines, staging, and production clouds.
+2. **Reverse Proxy & Gateway routing**: Running a server (Nginx) in front of applications to act as a single gateway point. This resolves cross-origin resource sharing (CORS) limits, provides load balancing, and hides internal service architectures.
+3. **Scraping-Based Observability**: Rather than pushing logs/metrics to external services manually, Prometheus actively scrapes metrics payload formats hosted on an HTTP path (`/metrics`) periodically, ensuring low overhead and reliability.
