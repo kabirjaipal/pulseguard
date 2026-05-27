@@ -125,6 +125,7 @@ def ping_endpoint_task(self, endpoint_id: int):
         # 4. State transition and notifications
         project = endpoint.project
         owner = project.owner
+        ai_analysis_payload = None
         
         if is_healthy:
             # Recovery: was failing, now healthy
@@ -149,6 +150,7 @@ def ping_endpoint_task(self, endpoint_id: int):
                 
                 # Generate AI Incident Analysis
                 ai_analysis = generate_incident_analysis(endpoint, recent_failures)
+                ai_analysis_payload = ai_analysis
                 
                 # Save the AI incident analysis to the database
                 analysis_log = IncidentAnalysis(
@@ -181,6 +183,7 @@ def ping_endpoint_task(self, endpoint_id: int):
         db.commit()
         
         # Cache the latest result in Redis as a JSON string
+        cache_payload = {}
         try:
             cache_payload = {
                 "id": result.id,
@@ -202,6 +205,22 @@ def ping_endpoint_task(self, endpoint_id: int):
             # Log cache failures to console without failing the ping task execution
             print(f"Error writing to Redis cache for endpoint {endpoint.id}: {str(cache_err)}")
         
+        # Publish live WebSocket update via Redis Pub/Sub
+        try:
+            pubsub_payload = {
+                "type": "endpoint_update",
+                "owner_id": owner.id,
+                "project_id": project.id,
+                "endpoint_id": endpoint.id,
+                "status": endpoint.status,
+                "consecutive_failures": endpoint.consecutive_failures,
+                "latest_result": cache_payload,
+                "ai_analysis": ai_analysis_payload
+            }
+            redis_client.publish("pulseguard_updates", json.dumps(pubsub_payload))
+        except Exception as pub_err:
+            print(f"Error publishing update to Redis Pub/Sub channel: {str(pub_err)}")
+            
         return {
             "endpoint_id": endpoint_id,
             "status_code": status_code,

@@ -16,9 +16,9 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
   - Redis caching, rate limiting, database indexing.
 - [x] **Phase 5 — AI Incident Analysis**
   - Groq API integration, log analysis, root-cause summaries.
-- [ ] **Phase 6 — Real-Time Dashboard** 👈 *Next Step*
+- [x] **Phase 6 — Real-Time Dashboard**
   - Next.js frontend, WebSockets, live status updates.
-- [ ] **Phase 7 — Production Engineering**
+- [ ] **Phase 7 — Production Engineering** 👈 *Next Step*
   - Structured logging, testing with pytest, CI/CD.
 - [ ] **Phase 8 — Deployment & Observability**
   - Docker Compose, Prometheus, Grafana, Nginx.
@@ -100,3 +100,21 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
 1. **OpenRouter API**: A unified routing interface to access various LLMs (like Llama 3). We leverage it to get real-time diagnostic summaries of why our servers are failing in milliseconds.
 2. **OpenRouter JSON Mode**: Setting the response format type to `json_object` forces the LLM to output valid JSON matching our requested keys. This eliminates flaky regex parser errors in standard text outputs.
 3. **Mock AI Fallback**: Providing high-quality placeholder mock diagnostics in development environments so the platform remains fully functional and informative without incurring immediate API key setup costs.
+
+---
+
+### Phase 6 — Real-Time Dashboard
+*Status: Complete*
+
+- [x] CORS Setup & WebSockets Integration (Configured `CORSMiddleware` in FastAPI and created `websocket_manager.py` with custom user-targeted registration mapping).
+- [x] Background Event Propagation (Modified Celery background tasks to publish pings and AI diagnosis updates to Redis Pub/Sub channel `pulseguard_updates`).
+- [x] Async Pub/Sub broadcast thread (Integrated an async Redis Pub/Sub subscriber listener to FastAPI startup lifespan, broadcasting live events instantly to active client WebSockets).
+- [x] Client Theme & Authentication (Configured a premium dark theme CSS system inside `globals.css` and built Context-based JWT authentication handler `AuthContext.tsx`).
+- [x] Real-time Dashboard (`/dashboard`) (Designed statistics cards, interactive modal forms for Project/Endpoint CRUD operations, and reactive websocket event handling).
+- [x] Detailed Monitor view (`/endpoints/[id]`) (Built custom responsive SVG area charts to display response latency trend, history logs list, and AI diagnostic report timeline).
+
+#### Key Concept Explanations:
+1. **Redis Pub/Sub Event Bus**: Since Celery runs in a separate process space than the FastAPI server, it cannot directly invoke web socket calls. Using Redis Pub/Sub allows background processes to push JSON payloads to a channel that the running web server listens to and broadcasts instantly.
+2. **WebSocket Lifecycle Manager**: Groups client connections under their database user ID. This ensures data segregation, letting users receive live statuses ONLY for the endpoints they own.
+3. **Tailwind v4 Theme Extensions**: Used modern Tailwind v4 theme variables to declare custom glassmorphism panels, glowing indicator highlights, and animations for live dashboard states.
+4. **SVG Responsive Area Charts**: Creating custom SVG line/area calculations in React is highly optimized, fully responsive, and completely avoids library and React 19 package version conflicts.
