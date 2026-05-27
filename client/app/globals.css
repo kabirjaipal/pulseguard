@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --card-bg: rgba(24, 24, 27, 0.7);
-  --card-border: rgba(63, 63, 70, 0.4);
+  /* Bootstrap 5 Light Theme Colors - Blue & White */
+  --background: #f8f9fa;
+  --foreground: #212529;
+  --card-bg: #ffffff;
+  --card-border: #dee2e6;
   
-  /* Status colors */
-  --healthy-glow: rgba(34, 197, 94, 0.2);
-  --failing-glow: rgba(239, 68, 68, 0.25);
-  --checking-glow: rgba(59, 130, 246, 0.25);
+  /* Bootstrap Status Colors */
+  --healthy-glow: rgba(25, 135, 84, 0.25);
+  --failing-glow: rgba(220, 53, 69, 0.3);
+  --checking-glow: rgba(13, 110, 253, 0.3);
 }
 
 @theme {
@@ -17,6 +18,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), Arial, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+
+  /* Bootstrap Theme Colors */
+  --color-primary: #0d6efd;
+  --color-primary-hover: #0b5ed7;
+  --color-secondary: #6c757d;
+  --color-secondary-hover: #5c636a;
+  --color-success: #198754;
+  --color-success-hover: #157347;
+  --color-danger: #dc3545;
+  --color-danger-hover: #bb2d3b;
+  --color-warning: #ffc107;
+  --color-warning-hover: #ffca2c;
+  --color-info: #0dcaf0;
+  --color-info-hover: #31d2f2;
   
   --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-pulse-glow-green: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -34,19 +49,19 @@
 
 @keyframes pulse-green {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 8px rgba(25, 135, 84, 0.3);
   }
   50% {
-    box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
+    box-shadow: 0 0 16px rgba(25, 135, 84, 0.7);
   }
 }
 
 @keyframes pulse-red {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
   }
   50% {
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.75);
+    box-shadow: 0 0 16px rgba(220, 53, 69, 0.75);
   }
 }
 
@@ -72,9 +87,9 @@ body {
 }
 
 .glass-panel-hover:hover {
-  background: rgba(39, 39, 42, 0.85);
-  border-color: rgba(113, 113, 122, 0.6);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  background: rgba(241, 243, 245, 0.9);
+  border-color: rgba(173, 181, 189, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
@@ -94,14 +109,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(9, 9, 11, 0.5);
+  background: rgba(248, 249, 250, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(63, 63, 70, 0.7);
+  background: rgba(206, 212, 218, 0.7);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.8);
+  background: rgba(173, 181, 189, 0.8);
 }

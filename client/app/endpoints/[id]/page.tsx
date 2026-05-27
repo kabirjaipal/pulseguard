@@ -277,7 +277,9 @@ export default function EndpointDetailPage() {
 
     // Map logs to coordinates
     const points = validHistory.map((h, i) => {
-      const x = padding + (i / (validHistory.length - 1)) * chartWidth;
+      const x = validHistory.length === 1
+        ? padding + chartWidth / 2
+        : padding + (i / (validHistory.length - 1)) * chartWidth;
       const y = padding + chartHeight - ((h.response_time_ms || 0) / chartMax) * chartHeight;
       return { x, y, val: h.response_time_ms, date: new Date(h.checked_at).toLocaleTimeString() };
     });
@@ -297,8 +299,8 @@ export default function EndpointDetailPage() {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible select-none">
           <defs>
             <linearGradient id="latencyGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#0d6efd" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#0d6efd" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -313,14 +315,14 @@ export default function EndpointDetailPage() {
                   y1={y} 
                   x2={width - padding} 
                   y2={y} 
-                  stroke="#1f1f23" 
+                  stroke="#e9ecef" 
                   strokeWidth="1" 
                   strokeDasharray="4 4"
                 />
                 <text 
                   x={padding - 8} 
                   y={y + 4} 
-                  fill="#52525b" 
+                  fill="#6c757d" 
                   fontSize="10" 
                   textAnchor="end"
                   fontFamily="monospace"
@@ -335,7 +337,7 @@ export default function EndpointDetailPage() {
           {areaD && <path d={areaD} fill="url(#latencyGrad)" />}
 
           {/* Latency line */}
-          {pathD && <path d={pathD} fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" />}
+          {pathD && <path d={pathD} fill="none" stroke="#0d6efd" strokeWidth="2.5" strokeLinecap="round" />}
 
           {/* Data Points */}
           {points.map((p, index) => (
@@ -344,10 +346,10 @@ export default function EndpointDetailPage() {
                 cx={p.x} 
                 cy={p.y} 
                 r="4" 
-                fill="#8b5cf6" 
-                stroke="#18181b" 
+                fill="#0d6efd" 
+                stroke="#ffffff" 
                 strokeWidth="1.5"
-                className="hover:r-6 hover:fill-purple-400 cursor-pointer transition-all"
+                className="hover:r-6 hover:fill-primary-hover cursor-pointer transition-all"
               />
               {/* Tooltip on hover */}
               <g className="opacity-0 group-hover/point:opacity-100 transition-opacity pointer-events-none">
@@ -357,8 +359,8 @@ export default function EndpointDetailPage() {
                   width="90" 
                   height="24" 
                   rx="6" 
-                  fill="#09090b" 
-                  stroke="#3f3f46" 
+                  fill="#212529" 
+                  stroke="#495057" 
                   strokeWidth="1"
                 />
                 <text 
@@ -382,21 +384,21 @@ export default function EndpointDetailPage() {
 
   if (authLoading || loading || !endpoint) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         {error ? (
-          <div className="text-center">
-            <ShieldAlert className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <p className="text-white font-semibold">{error}</p>
+          <div className="text-center px-4">
+            <ShieldAlert className="w-12 h-12 text-danger mx-auto mb-4" />
+            <p className="text-slate-900 font-semibold">{error}</p>
             <button 
               onClick={() => router.push("/dashboard")}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300"
+              className="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:text-primary-hover font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Dashboard</span>
             </button>
           </div>
         ) : (
-          <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         )}
       </div>
     );
@@ -405,48 +407,48 @@ export default function EndpointDetailPage() {
   const isHealthy = endpoint.status === "healthy";
   const isChecking = endpoint.status === "checking";
   const statusGlowClass = isHealthy 
-    ? "bg-emerald-500 animate-pulse-glow-green" 
+    ? "bg-success animate-pulse-glow-green" 
     : isChecking 
-      ? "bg-blue-500 animate-pulse" 
-      : "bg-red-500 animate-pulse-glow-red";
+      ? "bg-primary animate-pulse" 
+      : "bg-danger animate-pulse-glow-red";
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 pb-16">
+    <div className="min-h-screen flex flex-col bg-background text-foreground pb-16">
       {/* Top Navigation */}
-      <header className="glass-panel sticky top-0 z-40 border-b border-zinc-900 px-6 py-4">
+      <header className="glass-panel sticky top-0 z-40 border-b border-card-border px-6 py-4 bg-white">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-semibold text-sm">Dashboard</span>
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 font-medium text-xs uppercase tracking-widest">Scope details</span>
+            <span className="text-slate-500 font-medium text-xs uppercase tracking-widest">Scope details</span>
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto w-full px-6 mt-8">
         {/* Endpoint Heading Metadata Card */}
-        <section className="glass-panel rounded-2xl p-6 border border-zinc-900 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <section className="glass-panel rounded-2xl p-6 border border-card-border mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white shadow-sm">
           <div className="flex items-start gap-4">
             {/* Status Pulse */}
-            <div className={`w-4 h-4 rounded-full mt-1.5 shrink-0 border border-zinc-950 ${statusGlowClass}`} />
+            <div className={`w-4 h-4 rounded-full mt-1.5 shrink-0 border border-slate-100 ${statusGlowClass}`} />
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-2xl font-bold text-white">{endpoint.name}</h1>
-                <span className="bg-zinc-800 text-zinc-400 font-mono text-xs font-bold px-2 py-0.5 rounded uppercase">
+                <h1 className="text-2xl font-bold text-slate-900">{endpoint.name}</h1>
+                <span className="bg-slate-100 text-slate-700 font-mono text-xs font-bold px-2 py-0.5 rounded uppercase">
                   {endpoint.method}
                 </span>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
-                  isHealthy ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  isHealthy ? 'bg-success/15 text-success border border-success/20' : 'bg-danger/15 text-danger border border-danger/20'
                 }`}>
                   {endpoint.status}
                 </span>
               </div>
-              <p className="text-zinc-500 text-xs font-mono break-all mt-1.5 max-w-xl">{endpoint.url}</p>
+              <p className="text-slate-500 text-xs font-mono break-all mt-1.5 max-w-xl">{endpoint.url}</p>
             </div>
           </div>
 
@@ -454,12 +456,12 @@ export default function EndpointDetailPage() {
             <button
               onClick={handleTriggerPing}
               disabled={pinging}
-              className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50"
+              className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50"
             >
               {pinging ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-purple-400" />
+                <RefreshCw className="w-4 h-4 animate-spin text-primary" />
               ) : (
-                <Play className="w-4 h-4 fill-white" />
+                <Play className="w-4 h-4 fill-slate-700" />
               )}
               <span>Check Now</span>
             </button>
@@ -468,10 +470,10 @@ export default function EndpointDetailPage() {
             <button
               onClick={handleTriggerAI}
               disabled={analyzing}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50"
+              className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50 shadow-sm"
             >
               {analyzing ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-purple-200" />
+                <RefreshCw className="w-4 h-4 animate-spin text-white" />
               ) : (
                 <Sparkles className="w-4 h-4" />
               )}
@@ -482,8 +484,8 @@ export default function EndpointDetailPage() {
 
         {/* Display manual trigger errors */}
         {error && (
-          <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-red-950/20 border border-red-500/30 text-red-200 text-sm">
-            <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-red-50 border border-red-200 text-red-750 text-sm">
+            <ShieldAlert className="w-5 h-5 text-danger shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
@@ -492,25 +494,25 @@ export default function EndpointDetailPage() {
           {/* Latency History Section */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             {/* SVG Latency Chart Card */}
-            <div className="glass-panel rounded-2xl border border-zinc-900 p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-6 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-purple-400" />
+            <div className="glass-panel rounded-2xl border border-card-border p-6 bg-white shadow-sm">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-6 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-primary" />
                 <span>Response Time Trend (Last 30 Checks)</span>
               </h3>
               {renderLatencyChart()}
             </div>
 
             {/* Logs List Table Card */}
-            <div className="glass-panel rounded-2xl border border-zinc-900 p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-zinc-500" />
+            <div className="glass-panel rounded-2xl border border-card-border p-6 bg-white shadow-sm">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-slate-400" />
                 <span>Execution Logs</span>
               </h3>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-zinc-400 border-collapse">
+                <table className="w-full text-left text-sm text-slate-600 border-collapse">
                   <thead>
-                    <tr className="border-b border-zinc-900 text-xs font-semibold text-zinc-500 uppercase">
+                    <tr className="border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase">
                       <th className="py-3 px-2">Status</th>
                       <th className="py-3 px-2">Code</th>
                       <th className="py-3 px-2">Latency</th>
@@ -520,30 +522,30 @@ export default function EndpointDetailPage() {
                   </thead>
                   <tbody>
                     {history.slice().reverse().map((log) => (
-                      <tr key={log.id} className="border-b border-zinc-900/60 hover:bg-zinc-900/20 transition-colors">
+                      <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td className="py-3 px-2">
                           {log.is_healthy ? (
-                            <span className="flex items-center gap-1 text-emerald-400 font-semibold text-xs">
+                            <span className="flex items-center gap-1 text-success font-semibold text-xs">
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>OK</span>
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1 text-red-400 font-semibold text-xs">
+                            <span className="flex items-center gap-1 text-danger font-semibold text-xs">
                               <XCircle className="w-3.5 h-3.5" />
                               <span>FAIL</span>
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-2 font-mono text-zinc-300">
+                        <td className="py-3 px-2 font-mono text-slate-800">
                           {log.status_code || "--"}
                         </td>
-                        <td className="py-3 px-2 font-mono text-zinc-300">
+                        <td className="py-3 px-2 font-mono text-slate-800">
                           {log.response_time_ms ? `${log.response_time_ms}ms` : "--"}
                         </td>
-                        <td className="py-3 px-2 text-xs truncate max-w-xs text-zinc-500 font-mono">
+                        <td className="py-3 px-2 text-xs truncate max-w-xs text-slate-400 font-mono">
                           {log.error_message || "None"}
                         </td>
-                        <td className="py-3 px-2 text-right text-xs text-zinc-500 font-mono">
+                        <td className="py-3 px-2 text-right text-xs text-slate-400 font-mono">
                           {new Date(log.checked_at).toLocaleString()}
                         </td>
                       </tr>
@@ -551,7 +553,7 @@ export default function EndpointDetailPage() {
 
                     {history.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-zinc-600 text-sm">
+                        <td colSpan={5} className="py-8 text-center text-slate-500 text-sm">
                           No check logs recorded yet.
                         </td>
                       </tr>
@@ -564,8 +566,8 @@ export default function EndpointDetailPage() {
 
           {/* AI Diagnoses Sidebar */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-400 animate-pulse-slow" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary animate-pulse-slow" />
               <span>AI Incident Diagnostic Reports</span>
             </h3>
 
@@ -573,27 +575,27 @@ export default function EndpointDetailPage() {
               {analyses.map((report) => (
                 <div 
                   key={report.id}
-                  className="glass-panel bg-zinc-900/50 border border-zinc-900 rounded-xl p-5 shadow-lg relative overflow-hidden"
+                  className="glass-panel bg-white border border-card-border rounded-xl p-5 shadow-md relative overflow-hidden"
                 >
-                  <div className="flex items-center gap-1.5 mb-2.5 text-purple-400 text-xs font-semibold">
+                  <div className="flex items-center gap-1.5 mb-2.5 text-primary text-xs font-semibold">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{new Date(report.created_at).toLocaleString()}</span>
                   </div>
-                  <h4 className="text-sm font-bold text-white mb-2">Root Cause Summary</h4>
-                  <p className="text-zinc-300 text-xs leading-relaxed mb-4">{report.summary}</p>
+                  <h4 className="text-sm font-bold text-slate-900 mb-2">Root Cause Summary</h4>
+                  <p className="text-slate-700 text-xs leading-relaxed mb-4">{report.summary}</p>
                   
-                  <div className="pt-3 border-t border-zinc-800/80 text-xs">
-                    <span className="font-semibold text-zinc-400 block mb-1.5">Actionable Advice:</span>
-                    <div className="whitespace-pre-line text-zinc-400 leading-relaxed font-sans">{report.suggestions}</div>
+                  <div className="pt-3 border-t border-slate-100 text-xs">
+                    <span className="font-semibold text-slate-500 block mb-1.5">Actionable Advice:</span>
+                    <div className="whitespace-pre-line text-slate-500 leading-relaxed font-sans">{report.suggestions}</div>
                   </div>
                 </div>
               ))}
 
               {analyses.length === 0 && (
-                <div className="glass-panel border-dashed border-zinc-900 rounded-2xl p-8 text-center text-zinc-500">
-                  <Server className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-zinc-400">No incident reports generated</p>
-                  <p className="text-[10px] text-zinc-600 mt-1 leading-relaxed">
+                <div className="glass-panel border-dashed border-card-border rounded-2xl p-8 text-center text-slate-400 bg-white">
+                  <Server className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-500">No incident reports generated</p>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
                     AI diagnostics compile automatically upon 3 consecutive ping failures, or you can force one using the analyze button.
                   </p>
                 </div>

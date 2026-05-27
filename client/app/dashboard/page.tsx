@@ -439,29 +439,29 @@ export default function DashboardPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 pb-16">
+    <div className="min-h-screen flex flex-col bg-background text-foreground pb-16">
       {/* Top Navigation */}
-      <header className="glass-panel sticky top-0 z-40 border-b border-zinc-900 px-6 py-4">
+      <header className="glass-panel sticky top-0 z-40 border-b border-card-border px-6 py-4 bg-white">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">
+            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
               <Activity className="w-5 h-5 animate-pulse-slow" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-white">PulseGuard</span>
+            <span className="font-bold text-lg tracking-tight text-slate-900">PulseGuard</span>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-zinc-400 text-sm hidden sm:inline">{user.email}</span>
+            <span className="text-slate-600 text-sm hidden sm:inline">{user.email}</span>
             <button
               onClick={logout}
-              className="flex items-center gap-2 text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:bg-slate-50"
             >
               <LogOut className="w-4 h-4" />
               <span>Log Out</span>
@@ -477,36 +477,36 @@ export default function DashboardPage() {
             {activeAlerts.map((alert) => (
               <div 
                 key={alert.id}
-                className="relative glass-panel bg-red-950/15 border border-red-500/30 rounded-2xl p-6 shadow-xl glow-red overflow-hidden"
+                className="relative glass-panel bg-red-50 border border-red-200 rounded-2xl p-6 shadow-xl glow-red overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-3">
                   <button 
                     onClick={() => setActiveAlerts((prev) => prev.filter((a) => a.id !== alert.id))}
-                    className="text-red-400 hover:text-red-300 transition-colors"
+                    className="text-red-500 hover:text-red-700 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400">
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-danger">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Critical Alert</span>
-                      <h4 className="font-semibold text-white text-base">API Incident Detected: {alert.endpointName}</h4>
+                      <span className="text-danger text-xs font-bold uppercase tracking-widest">Critical Alert</span>
+                      <h4 className="font-semibold text-slate-900 text-base">API Incident Detected: {alert.endpointName}</h4>
                     </div>
-                    <p className="text-zinc-400 text-xs font-mono break-all mb-4">{alert.url}</p>
+                    <p className="text-slate-500 text-xs font-mono break-all mb-4">{alert.url}</p>
                     
-                    <div className="bg-zinc-950/80 border border-zinc-900 rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-1.5 mb-2 text-purple-400 text-xs font-semibold">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-2">
+                      <div className="flex items-center gap-1.5 mb-2 text-primary text-xs font-semibold">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>AI Root-Cause Diagnosis</span>
                       </div>
-                      <p className="text-zinc-300 text-sm leading-relaxed mb-3">{alert.summary}</p>
+                      <p className="text-slate-800 text-sm leading-relaxed mb-3">{alert.summary}</p>
                       
-                      <div className="text-xs text-zinc-400">
-                        <span className="font-semibold text-zinc-300 block mb-1">Troubleshooting Checklist:</span>
+                      <div className="text-xs text-slate-600">
+                        <span className="font-semibold text-slate-800 block mb-1">Troubleshooting Checklist:</span>
                         <div className="whitespace-pre-line leading-relaxed">{alert.suggestions}</div>
                       </div>
                     </div>
@@ -520,54 +520,54 @@ export default function DashboardPage() {
         {/* Statistics Header */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Total Endpoints */}
-          <div className="glass-panel p-5 rounded-2xl border border-zinc-900">
-            <div className="flex items-center justify-between mb-3 text-zinc-500">
+          <div className="glass-panel p-5 rounded-2xl border border-card-border bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3 text-slate-500">
               <span className="text-xs uppercase tracking-wider font-semibold">Total Monitored</span>
-              <Globe className="w-4 h-4 text-zinc-400" />
+              <Globe className="w-4 h-4 text-slate-400" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">{totalMonitored}</span>
-              <span className="text-zinc-500 text-xs">endpoints</span>
+              <span className="text-3xl font-bold text-slate-900">{totalMonitored}</span>
+              <span className="text-slate-500 text-xs">endpoints</span>
             </div>
           </div>
 
           {/* Health Index */}
-          <div className="glass-panel p-5 rounded-2xl border border-zinc-900">
-            <div className="flex items-center justify-between mb-3 text-zinc-500">
+          <div className="glass-panel p-5 rounded-2xl border border-card-border bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3 text-slate-500">
               <span className="text-xs uppercase tracking-wider font-semibold">Health Score</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-4 h-4 text-success" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-bold ${healthRatio > 90 ? 'text-emerald-400' : healthRatio > 70 ? 'text-amber-400' : 'text-red-400'}`}>
+              <span className={`text-3xl font-bold ${healthRatio > 90 ? 'text-success' : healthRatio > 70 ? 'text-warning' : 'text-danger'}`}>
                 {healthRatio}%
               </span>
-              <span className="text-zinc-500 text-xs">online</span>
+              <span className="text-slate-500 text-xs">online</span>
             </div>
           </div>
 
           {/* Latency Avg */}
-          <div className="glass-panel p-5 rounded-2xl border border-zinc-900">
-            <div className="flex items-center justify-between mb-3 text-zinc-500">
+          <div className="glass-panel p-5 rounded-2xl border border-card-border bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3 text-slate-500">
               <span className="text-xs uppercase tracking-wider font-semibold">Average Latency</span>
-              <Clock className="w-4 h-4 text-purple-400" />
+              <Clock className="w-4 h-4 text-primary" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">{avgLatency || "--"}</span>
-              <span className="text-zinc-500 text-xs">ms</span>
+              <span className="text-3xl font-bold text-slate-900">{avgLatency || "--"}</span>
+              <span className="text-slate-500 text-xs">ms</span>
             </div>
           </div>
 
           {/* Active Incidents */}
-          <div className="glass-panel p-5 rounded-2xl border border-zinc-900">
-            <div className="flex items-center justify-between mb-3 text-zinc-500">
+          <div className="glass-panel p-5 rounded-2xl border border-card-border bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3 text-slate-500">
               <span className="text-xs uppercase tracking-wider font-semibold">Active Incidents</span>
-              <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse-slow" />
+              <AlertTriangle className="w-4 h-4 text-danger animate-pulse-slow" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-bold ${failingCount > 0 ? 'text-red-400 animate-pulse' : 'text-zinc-400'}`}>
+              <span className={`text-3xl font-bold ${failingCount > 0 ? 'text-danger animate-pulse' : 'text-slate-500'}`}>
                 {failingCount}
               </span>
-              <span className="text-zinc-500 text-xs">failing</span>
+              <span className="text-slate-500 text-xs">failing</span>
             </div>
           </div>
         </section>
@@ -577,23 +577,23 @@ export default function DashboardPage() {
           {/* Projects Side Panel */}
           <aside className="lg:col-span-1 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Projects</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Projects</h3>
               <button
                 onClick={() => setIsProjectModalOpen(true)}
-                className="p-1 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
+                className="p-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full min-w-0">
               {/* All Projects Option */}
               <button
                 onClick={() => setSelectedProjectId(null)}
                 className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                   selectedProjectId === null
-                    ? "bg-purple-950/20 border-purple-500/30 text-purple-300"
-                    : "bg-zinc-900/40 border-transparent text-zinc-400 hover:bg-zinc-900/80 hover:text-white"
+                    ? "bg-primary/10 border-primary/20 text-primary"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm"
                 }`}
               >
                 All Projects
@@ -601,22 +601,22 @@ export default function DashboardPage() {
 
               {/* Individual Projects */}
               {projects.map((proj) => (
-                <div key={proj.id} className="group relative flex items-center">
+                <div key={proj.id} className="group relative flex items-center w-full min-w-0">
                   <button
                     onClick={() => setSelectedProjectId(proj.id)}
-                    className={`flex-1 text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all pr-10 ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all pr-10 min-w-0 ${
                       selectedProjectId === proj.id
-                        ? "bg-purple-950/20 border-purple-500/30 text-purple-300"
-                        : "bg-zinc-900/40 border-transparent text-zinc-400 hover:bg-zinc-900/80 hover:text-white"
+                        ? "bg-primary/10 border-primary/20 text-primary"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm"
                     }`}
                   >
                     <div className="truncate font-semibold">{proj.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">{proj.description || "No description"}</div>
+                    <div className="text-xs text-slate-500 truncate">{proj.description || "No description"}</div>
                   </button>
                   
                   <button
                     onClick={() => handleDeleteProject(proj.id)}
-                    className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-red-400 rounded-md hover:bg-zinc-800 transition-all"
+                    className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-danger rounded-md hover:bg-slate-100 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -624,7 +624,7 @@ export default function DashboardPage() {
               ))}
 
               {projects.length === 0 && (
-                <div className="text-center p-6 border border-dashed border-zinc-800 rounded-2xl text-zinc-500 text-sm">
+                <div className="text-center p-6 border border-dashed border-slate-200 rounded-2xl text-slate-500 text-sm bg-white">
                   No projects yet.
                 </div>
               )}
@@ -634,13 +634,13 @@ export default function DashboardPage() {
           {/* Endpoints Table/List Area */}
           <section className="lg:col-span-3 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                 Monitored Routes ({filteredEndpoints.length})
               </h3>
               <button
                 onClick={() => setIsEndpointModalOpen(true)}
                 disabled={projects.length === 0}
-                className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-medium px-3.5 py-2 rounded-xl text-sm transition-colors shadow-lg shadow-purple-600/10 disabled:opacity-50 disabled:pointer-events-none"
+                className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white font-medium px-3.5 py-2 rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 disabled:pointer-events-none"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Route</span>
@@ -648,8 +648,8 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <div className="glass-panel rounded-2xl border border-zinc-900 p-16 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+              <div className="glass-panel rounded-2xl border border-card-border p-16 flex items-center justify-center bg-white shadow-sm">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : (
               <div className="flex flex-col gap-3">
@@ -667,36 +667,36 @@ export default function DashboardPage() {
                     <div
                       key={ep.id}
                       onClick={() => router.push(`/endpoints/${ep.id}`)}
-                      className="glass-panel glass-panel-hover rounded-xl p-4 border border-zinc-900 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                      className="glass-panel glass-panel-hover rounded-xl p-4 border border-card-border cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white shadow-sm"
                     >
                       {/* Left: Health Indicator & Details */}
                       <div className="flex items-center gap-4 min-w-0">
                         {/* Status Light */}
-                        <div className={`w-3.5 h-3.5 rounded-full shrink-0 border border-zinc-950 ${statusGlowClass}`} />
+                        <div className={`w-3.5 h-3.5 rounded-full shrink-0 border border-slate-100 ${statusGlowClass}`} />
                         
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white truncate text-base">{ep.name}</span>
-                            <span className="bg-zinc-800 text-zinc-400 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0">
+                            <span className="font-semibold text-slate-900 truncate text-base">{ep.name}</span>
+                            <span className="bg-slate-100 text-slate-700 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0">
                               {ep.method}
                             </span>
                           </div>
-                          <p className="text-zinc-500 text-xs font-mono truncate max-w-sm mt-0.5">{ep.url}</p>
+                          <p className="text-slate-500 text-xs font-mono truncate max-w-sm mt-0.5">{ep.url}</p>
                         </div>
                       </div>
 
                       {/* Right: Latency & Settings Actions */}
-                      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-zinc-800">
+                      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
                         {/* Check Interval */}
-                        <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                        <div className="flex items-center gap-1 text-slate-500 text-xs">
                           <Clock className="w-3.5 h-3.5" />
                           <span>{ep.check_interval}s</span>
                         </div>
 
                         {/* Latency badge */}
                         <div className="flex flex-col items-end shrink-0">
-                          <span className="text-xs text-zinc-500">Latency</span>
-                          <span className={`text-sm font-semibold font-mono ${isHealthy ? 'text-white' : 'text-zinc-500'}`}>
+                          <span className="text-xs text-slate-500">Latency</span>
+                          <span className={`text-sm font-semibold font-mono ${isHealthy ? 'text-slate-900' : 'text-slate-500'}`}>
                             {latestResult?.response_time_ms ? `${latestResult.response_time_ms} ms` : "--"}
                           </span>
                         </div>
@@ -706,20 +706,20 @@ export default function DashboardPage() {
                           <button
                             onClick={(e) => handleTriggerPing(e, ep.id)}
                             title="Trigger Instant Check"
-                            className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800/80 border border-transparent hover:border-zinc-800 transition-all"
+                            className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 border border-transparent transition-all"
                           >
-                            <Play className="w-4 h-4 fill-zinc-400 hover:fill-white" />
+                            <Play className="w-4 h-4 fill-slate-500 hover:fill-slate-800" />
                           </button>
                           
                           <button
                             onClick={(e) => handleDeleteEndpoint(e, ep.id)}
                             title="Delete Endpoint"
-                            className="p-2 text-zinc-500 hover:text-red-400 rounded-lg hover:bg-zinc-800/80 transition-all"
+                            className="p-2 text-slate-400 hover:text-danger rounded-lg hover:bg-slate-100 transition-all"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
 
-                          <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
                         </div>
                       </div>
                     </div>
@@ -727,10 +727,10 @@ export default function DashboardPage() {
                 })}
 
                 {filteredEndpoints.length === 0 && (
-                  <div className="glass-panel rounded-2xl border border-zinc-900 border-dashed p-16 text-center text-zinc-500">
-                    <Server className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-zinc-400">No monitored routes in this scope</p>
-                    <p className="text-xs text-zinc-500 mt-1">Click "Add Route" to register your first endpoint.</p>
+                  <div className="glass-panel rounded-2xl border border-card-border border-dashed p-16 text-center text-slate-500 bg-white">
+                    <Server className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-slate-600">No monitored routes in this scope</p>
+                    <p className="text-xs text-slate-500 mt-1">Click "Add Route" to register your first endpoint.</p>
                   </div>
                 )}
               </div>
@@ -741,47 +741,47 @@ export default function DashboardPage() {
 
       {/* Add Project Modal */}
       {isProjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-800 p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-card-border p-6 shadow-xl bg-white animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">Create Project</h3>
-              <button onClick={() => setIsProjectModalOpen(false)} className="text-zinc-400 hover:text-white">
+              <h3 className="text-lg font-bold text-slate-900">Create Project</h3>
+              <button onClick={() => setIsProjectModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <form onSubmit={handleCreateProject} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Project Name</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Project Name</label>
                 <input
                   type="text"
                   required
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="e.g. Production API"
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Description</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Description</label>
                 <textarea
                   value={projectDesc}
                   onChange={(e) => setProjectDesc(e.target.value)}
                   placeholder="e.g. Core microservices monitoring"
                   rows={3}
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50 resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Webhook URL (Slack/Discord)</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Webhook URL (Slack/Discord)</label>
                 <input
                   type="url"
                   value={projectWebhook}
                   onChange={(e) => setProjectWebhook(e.target.value)}
                   placeholder="https://hooks.slack.com/services/..."
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -789,13 +789,13 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsProjectModalOpen(false)}
-                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-purple-600 hover:bg-purple-500 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                  className="bg-primary hover:bg-primary-hover px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
                 >
                   Save Project
                 </button>
@@ -807,23 +807,23 @@ export default function DashboardPage() {
 
       {/* Add Endpoint Modal */}
       {isEndpointModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-800 p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-card-border p-6 shadow-xl bg-white animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">Add Route to Monitor</h3>
-              <button onClick={() => setIsEndpointModalOpen(false)} className="text-zinc-400 hover:text-white">
+              <h3 className="text-lg font-bold text-slate-900">Add Route to Monitor</h3>
+              <button onClick={() => setIsEndpointModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <form onSubmit={handleCreateEndpoint} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Project Scope</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Project Scope</label>
                 <select
                   required
                   value={endpointProjectId}
                   onChange={(e) => setEndpointProjectId(Number(e.target.value))}
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
                 >
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -832,24 +832,24 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Route Name</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Route Name</label>
                 <input
                   type="text"
                   required
                   value={endpointName}
                   onChange={(e) => setEndpointName(e.target.value)}
                   placeholder="e.g. Users Healthcheck"
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-1">
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Method</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Method</label>
                   <select
                     value={endpointMethod}
                     onChange={(e) => setEndpointMethod(e.target.value)}
-                    className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
                   >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -859,11 +859,11 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Interval (Seconds)</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Interval (Seconds)</label>
                   <select
                     value={endpointInterval}
                     onChange={(e) => setEndpointInterval(Number(e.target.value))}
-                    className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
                   >
                     <option value={10}>10s (Real-time)</option>
                     <option value={30}>30s</option>
@@ -874,14 +874,14 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Target URL</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Target URL</label>
                 <input
                   type="url"
                   required
                   value={endpointUrl}
                   onChange={(e) => setEndpointUrl(e.target.value)}
                   placeholder="https://api.yourdomain.com/health"
-                  className="w-full bg-zinc-900/85 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -889,13 +889,13 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsEndpointModalOpen(false)}
-                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-750 transition-colors animate-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-purple-600 hover:bg-purple-500 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                  className="bg-primary hover:bg-primary-hover px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
                 >
                   Start Monitoring
                 </button>
