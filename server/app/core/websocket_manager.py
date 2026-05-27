@@ -1,9 +1,12 @@
 import asyncio
 import json
+import logging
 from typing import Dict, List
 from fastapi import WebSocket
 from redis.asyncio import Redis
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     def __init__(self):
@@ -16,7 +19,7 @@ class ConnectionManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = []
         self.active_connections[user_id].append(websocket)
-        print(f"WebSocket client connected. User ID: {user_id}. Active connections: {len(self.active_connections[user_id])}")
+        logger.info("WebSocket client connected. User ID: %d. Active connections: %d", user_id, len(self.active_connections[user_id]))
 
     def disconnect(self, websocket: WebSocket, user_id: int):
         """Unregister the connection when client disconnects."""
@@ -25,7 +28,7 @@ class ConnectionManager:
                 self.active_connections[user_id].remove(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
-        print(f"WebSocket client disconnected. User ID: {user_id}")
+        logger.info("WebSocket client disconnected. User ID: %d", user_id)
 
     async def send_personal_message(self, message: dict, websocket: WebSocket):
         """Send a JSON payload to a specific connection."""
@@ -39,7 +42,7 @@ class ConnectionManager:
                 try:
                     await connection.send_json(message)
                 except Exception as e:
-                    print(f"Error broadcasting to WebSocket for User {user_id}: {str(e)}")
+                    logger.error("Error broadcasting to WebSocket for User %d: %s", user_id, str(e), exc_info=True)
                     self.disconnect(connection, user_id)
 
 # Global connection manager instance
@@ -50,7 +53,7 @@ async def redis_pubsub_listener():
     Subscribes to the 'pulseguard_updates' Redis channel and broadcasts
     messages to the appropriate WebSocket clients.
     """
-    print("Starting Redis Pub/Sub WebSocket broadcast listener...")
+    logger.info("Starting Redis Pub/Sub WebSocket broadcast listener...")
     async_redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
     pubsub = async_redis.pubsub()
     await pubsub.subscribe("pulseguard_updates")
@@ -64,11 +67,12 @@ async def redis_pubsub_listener():
                     if owner_id:
                         await manager.broadcast_to_user(int(owner_id), payload)
                 except Exception as json_err:
-                    print(f"Error parsing Redis Pub/Sub message data: {str(json_err)}")
+                    logger.error("Error parsing Redis Pub/Sub message data: %s", str(json_err), exc_info=True)
     except asyncio.CancelledError:
-        print("Redis Pub/Sub listener task cancelled.")
+        logger.info("Redis Pub/Sub listener task cancelled.")
     except Exception as e:
-        print(f"Error in Redis Pub/Sub listener: {str(e)}")
+        logger.error("Error in Redis Pub/Sub listener: %s", str(e), exc_info=True)
     finally:
         await pubsub.unsubscribe("pulseguard_updates")
         await async_redis.close()
+

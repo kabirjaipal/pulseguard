@@ -2,11 +2,14 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, status
 from sqlalchemy.orm import Session
 import jwt
 from jwt.exceptions import InvalidTokenError
+import logging
 
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.core.websocket_manager import manager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["WebSockets"])
 
@@ -60,10 +63,11 @@ async def websocket_endpoint(
             manager.disconnect(websocket, user.id)
             
     except Exception as e:
-        print(f"Error in websocket endpoint: {str(e)}")
+        logger.error("Error in websocket endpoint: %s", str(e), exc_info=True)
         try:
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
         except Exception:
             pass
     finally:
         db.close()
+

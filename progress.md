@@ -18,9 +18,9 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
   - Groq API integration, log analysis, root-cause summaries.
 - [x] **Phase 6 — Real-Time Dashboard**
   - Next.js frontend, WebSockets, live status updates.
-- [ ] **Phase 7 — Production Engineering** 👈 *Next Step*
+- [x] **Phase 7 — Production Engineering**
   - Structured logging, testing with pytest, CI/CD.
-- [ ] **Phase 8 — Deployment & Observability**
+- [ ] **Phase 8 — Deployment & Observability** 👈 *Next Step*
   - Docker Compose, Prometheus, Grafana, Nginx.
 
 ---
@@ -113,8 +113,17 @@ Welcome! This document tracks our progress as we build **PulseGuard**, an AI-Pow
 - [x] Real-time Dashboard (`/dashboard`) (Designed statistics cards, interactive modal forms for Project/Endpoint CRUD operations, and reactive websocket event handling).
 - [x] Detailed Monitor view (`/endpoints/[id]`) (Built custom responsive SVG area charts to display response latency trend, history logs list, and AI diagnostic report timeline).
 
+---
+
+### Phase 7 — Production Engineering
+*Status: Complete*
+
+- [x] Centralized exception handlers (Added global decorators in `app/main.py` for `SQLAlchemyError` and unhandled standard Python `Exception`, returning standardized, sanitized JSON responses to clients).
+- [x] Migrate stdout prints to structured logging (Replaced generic console print statements in routers, core tasks, notification flows, and connection managers with structured Python logger calls utilizing JSONFormatter).
+- [x] Expand Pytest suites (Added comprehensive unit tests covering projects, incident analysis manual generation, Redis caching hit/miss behavior, and exception handlers).
+- [x] Rate Limiter testing bypass (Added automated bypass of rate limiting in `conftest.py` using Redis client mock patching to ensure test speed and reliability without hitting HTTP 429).
+
 #### Key Concept Explanations:
-1. **Redis Pub/Sub Event Bus**: Since Celery runs in a separate process space than the FastAPI server, it cannot directly invoke web socket calls. Using Redis Pub/Sub allows background processes to push JSON payloads to a channel that the running web server listens to and broadcasts instantly.
-2. **WebSocket Lifecycle Manager**: Groups client connections under their database user ID. This ensures data segregation, letting users receive live statuses ONLY for the endpoints they own.
-3. **Tailwind v4 Theme Extensions**: Used modern Tailwind v4 theme variables to declare custom glassmorphism panels, glowing indicator highlights, and animations for live dashboard states.
-4. **SVG Responsive Area Charts**: Creating custom SVG line/area calculations in React is highly optimized, fully responsive, and completely avoids library and React 19 package version conflicts.
+1. **Centralized Error Interception**: Global exception handlers in FastAPI act as middlewares intercepting exceptions raised inside routes or DB operations. This prevents internal database stack traces or server paths from leaking in API responses, improving application security.
+2. **Structured Logging**: Formatting log messages in JSON format so log collectors (like Elasticsearch or Loki) can index parameters (such as `timestamp`, `level`, `line`, `message`, and `logger`) as queryable fields rather than raw block text.
+3. **Mocking External Engines (Redis/Celery)**: Mocking network/broker layers in tests allows testing isolated routes locally without needing real operational workers, dramatically speeding up verification runs.

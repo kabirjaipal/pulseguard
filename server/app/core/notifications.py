@@ -2,8 +2,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import datetime
+import logging
 import httpx
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 def send_email_alert(recipient_email: str, subject: str, body: str):
     """
@@ -12,13 +15,13 @@ def send_email_alert(recipient_email: str, subject: str, body: str):
     If SMTP_HOST is configured, uses smtplib to send the email.
     """
     if not settings.SMTP_HOST:
-        # Mock mode: print to console for local development
-        print("\n" + "="*50)
-        print(" 📧 MOCK EMAIL ALERT SENT")
-        print(f"To:      {recipient_email}")
-        print(f"Subject: {subject}")
-        print(f"Body:\n{body}")
-        print("="*50 + "\n")
+        # Mock mode: log via logger in JSON format
+        logger.info(
+            "📧 MOCK EMAIL ALERT SENT to: %s, subject: %s",
+            recipient_email,
+            subject,
+            extra={"extra_info": {"recipient": recipient_email, "subject": subject, "body": body}}
+        )
         return
 
     # Real SMTP email sending
@@ -39,9 +42,9 @@ def send_email_alert(recipient_email: str, subject: str, body: str):
             
         server.sendmail(settings.SMTP_FROM_EMAIL, recipient_email, msg.as_string())
         server.quit()
-        print(f"Successfully sent live email alert to {recipient_email}")
+        logger.info("Successfully sent live email alert to %s", recipient_email)
     except Exception as e:
-        print(f"Failed to send SMTP email: {str(e)}")
+        logger.error("Failed to send SMTP email to %s: %s", recipient_email, str(e), exc_info=True)
 
 def send_webhook_alert(webhook_url: str, payload: dict):
     """
@@ -50,11 +53,12 @@ def send_webhook_alert(webhook_url: str, payload: dict):
     try:
         response = httpx.post(webhook_url, json=payload, timeout=5.0)
         if 200 <= response.status_code < 300:
-            print(f"Successfully triggered webhook: {webhook_url}")
+            logger.info("Successfully triggered webhook: %s", webhook_url)
         else:
-            print(f"Webhook alert failed with status code {response.status_code}: {response.text}")
+            logger.warning("Webhook alert failed with status code %d: %s", response.status_code, response.text)
     except Exception as e:
-        print(f"Failed to trigger webhook alert: {str(e)}")
+        logger.error("Failed to trigger webhook alert for %s: %s", webhook_url, str(e), exc_info=True)
+
 
 def dispatch_alert(endpoint, project, owner, is_recovery: bool, error_message: str | None = None, ai_analysis: dict | None = None):
     """

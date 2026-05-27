@@ -1,6 +1,9 @@
 import json
+import logging
 from groq import Groq
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 def generate_mock_analysis(endpoint, recent_results: list) -> dict:
     """
@@ -48,7 +51,7 @@ def generate_incident_analysis(endpoint, recent_results: list) -> dict:
     Uses JSON mode to guarantee a structured response.
     """
     if not settings.OPENROUTER_API_KEY:
-        print("OPENROUTER_API_KEY not set. Falling back to local mock AI analysis.")
+        logger.warning("OPENROUTER_API_KEY not set. Falling back to local mock AI analysis.")
         return generate_mock_analysis(endpoint, recent_results)
 
     try:
@@ -117,5 +120,6 @@ def generate_incident_analysis(endpoint, recent_results: list) -> dict:
             raise ValueError("OpenRouter JSON response missing required fields.")
             
     except Exception as e:
-        print(f"Error calling OpenRouter via Groq SDK: {str(e)}. Falling back to mock analysis.")
+        logger.error("Error calling OpenRouter via Groq SDK: %s. Falling back to mock analysis.", str(e), exc_info=True)
         return generate_mock_analysis(endpoint, recent_results)
+

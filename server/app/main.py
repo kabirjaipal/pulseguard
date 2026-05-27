@@ -1,7 +1,10 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import engine
 from app.models import Base
 from app.routers import auth, projects, endpoints, incidents, websocket
@@ -10,6 +13,7 @@ from app.core.logging_config import setup_logging
 
 # Initialize structured logging
 setup_logging()
+logger = logging.getLogger("app.main")
 
 # Create database tables. In production we would use Alembic migrations,
 # but for learning and quick development, we let SQLAlchemy generate them.
@@ -34,6 +38,23 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.error("Database exception encountered: %s", str(exc), exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "A database error occurred."}
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled server exception: %s", str(exc), exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error."}
+    )
+
 
 # CORS configurations - Allow local Next.js dev server
 app.add_middleware(

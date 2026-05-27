@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.deps import get_current_user
@@ -176,7 +179,7 @@ def get_latest_endpoint_result(
         if cached_data:
             return json.loads(cached_data)
     except Exception as e:
-        print(f"Error reading from Redis cache: {str(e)}")
+        logger.error("Error reading from Redis cache: %s", str(e), exc_info=True)
         
     # 3. Cache Miss: Query the PostgreSQL database for the latest check
     latest_result = db.query(MonitoringResult).filter(
@@ -203,7 +206,7 @@ def get_latest_endpoint_result(
         expire_seconds = max(endpoint.check_interval * 2, 120)
         redis_client.setex(cache_key, expire_seconds, json.dumps(cache_payload))
     except Exception as e:
-        print(f"Error writing to Redis cache: {str(e)}")
+        logger.error("Error writing to Redis cache: %s", str(e), exc_info=True)
         
     return latest_result
 

@@ -48,3 +48,14 @@ def client(db):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_redis_in_limiter():
+    from unittest.mock import patch
+    with patch("app.core.limiter.redis_client") as mock_redis:
+        mock_redis.incr.return_value = 1
+        mock_redis.expire.return_value = True
+        yield
+
+
+

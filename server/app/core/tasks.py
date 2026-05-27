@@ -1,6 +1,7 @@
 import time
 import datetime
 import json
+import logging
 import httpx
 from celery.exceptions import MaxRetriesExceededError
 from app.core.celery_app import celery_app
@@ -11,6 +12,8 @@ from app.models.incident_analysis import IncidentAnalysis
 from app.core.notifications import dispatch_alert
 from app.core.redis_client import redis_client
 from app.core.ai import generate_incident_analysis
+
+logger = logging.getLogger(__name__)
 
 @celery_app.task(name="app.core.tasks.scheduler_task")
 def scheduler_task():
@@ -203,7 +206,7 @@ def ping_endpoint_task(self, endpoint_id: int):
             )
         except Exception as cache_err:
             # Log cache failures to console without failing the ping task execution
-            print(f"Error writing to Redis cache for endpoint {endpoint.id}: {str(cache_err)}")
+            logger.error("Error writing to Redis cache for endpoint %d: %s", endpoint.id, str(cache_err), exc_info=True)
         
         # Publish live WebSocket update via Redis Pub/Sub
         try:
@@ -219,7 +222,7 @@ def ping_endpoint_task(self, endpoint_id: int):
             }
             redis_client.publish("pulseguard_updates", json.dumps(pubsub_payload))
         except Exception as pub_err:
-            print(f"Error publishing update to Redis Pub/Sub channel: {str(pub_err)}")
+            logger.error("Error publishing update to Redis Pub/Sub channel: %s", str(pub_err), exc_info=True)
             
         return {
             "endpoint_id": endpoint_id,

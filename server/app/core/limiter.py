@@ -1,7 +1,10 @@
 import time
 import hashlib
+import logging
 from fastapi import Request, HTTPException, status
 from app.core.redis_client import redis_client
+
+logger = logging.getLogger(__name__)
 
 class RateLimiter:
     """
@@ -60,4 +63,5 @@ class RateLimiter:
             raise
         except Exception as e:
             # Bypass rate limiter if Redis is offline/erroring to keep service available
-            print(f"Rate limiting engine connection error: {str(e)}")
+            logger.warning("Rate limiting engine connection error: %s", str(e), exc_info=True)
+
