@@ -39,14 +39,11 @@ services:
       - ./server:/workspace
     ports:
       - "8000:8000"
+    env_file:
+      - ./server/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
     depends_on:
       db:
         condition: service_healthy
@@ -61,14 +58,11 @@ services:
     command: celery -A app.core.tasks.celery_app worker --loglevel=info
     volumes:
       - ./server:/workspace
+    env_file:
+      - ./server/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
     depends_on:
       db:
         condition: service_healthy
@@ -83,14 +77,11 @@ services:
     command: celery -A app.core.tasks.celery_app beat --loglevel=info
     volumes:
       - ./server:/workspace
+    env_file:
+      - ./server/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/pulseguard
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=dev_secret_key_pulseguard_change_in_production_1234567890
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
     depends_on:
       db:
         condition: service_healthy
