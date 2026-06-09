@@ -4,6 +4,7 @@ import logging
 from typing import Dict, List
 from fastapi import WebSocket
 from redis.asyncio import Redis
+import redis
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,13 @@ async def redis_pubsub_listener():
         pubsub = None
         async_redis = None
         try:
-            async_redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            # Set socket_timeout=None to block indefinitely and health_check_interval to keep connection alive
+            async_redis = Redis.from_url(
+                settings.REDIS_URL, 
+                decode_responses=True, 
+                socket_timeout=None, 
+                health_check_interval=30
+            )
             pubsub = async_redis.pubsub()
             await pubsub.subscribe("pulseguard_updates")
             
@@ -75,6 +82,10 @@ async def redis_pubsub_listener():
         except asyncio.CancelledError:
             logger.info("Redis Pub/Sub listener task cancelled.")
             break
+        except (redis.exceptions.TimeoutError, asyncio.TimeoutError):
+            # Quietly reconnect on read timeouts without printing traceback
+            logger.debug("Redis Pub/Sub listener read timeout. Reconnecting...")
+            continue
         except Exception as e:
             logger.error("Error in Redis Pub/Sub listener: %s. Reconnecting in 5 seconds...", str(e), exc_info=True)
             await asyncio.sleep(5)
