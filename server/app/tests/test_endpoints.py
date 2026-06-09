@@ -271,3 +271,60 @@ def test_trigger_ping_manually(client):
         assert ping_res.status_code == 202
         assert ping_res.json()["message"] == "Check triggered and queued."
         mock_delay.assert_called_once_with(endpoint_id)
+
+
+def test_update_endpoint(client):
+    headers = get_auth_headers(client)
+
+    # 1. Create Project
+    proj_res = client.post(
+        "/api/projects/",
+        json={"name": "Workspace", "description": "Desc"},
+        headers=headers
+    )
+    project_id = proj_res.json()["id"]
+
+    # 2. Create Endpoint
+    end_res = client.post(
+        "/api/endpoints/",
+        json={
+            "name": "Target",
+            "url": "https://httpbin.org/status/200",
+            "method": "GET",
+            "check_interval": 30,
+            "is_active": True,
+            "project_id": project_id
+        },
+        headers=headers
+    )
+    endpoint_id = end_res.json()["id"]
+
+    # 3. Update Endpoint
+    update_res = client.put(
+        f"/api/endpoints/{endpoint_id}",
+        json={
+            "name": "Updated Target",
+            "url": "https://httpbin.org/status/201",
+            "method": "POST",
+            "check_interval": 60,
+            "is_active": False
+        },
+        headers=headers
+    )
+    assert update_res.status_code == 200
+    updated_data = update_res.json()
+    assert updated_data["name"] == "Updated Target"
+    assert updated_data["url"] == "https://httpbin.org/status/201"
+    assert updated_data["method"] == "POST"
+    assert updated_data["check_interval"] == 60
+    assert updated_data["is_active"] is False
+
+    # 4. Unauthorized update (other user)
+    headers2 = get_auth_headers(client, "other@pulseguard.io")
+    update_unauth_res = client.put(
+        f"/api/endpoints/{endpoint_id}",
+        json={"name": "Attacker Target"},
+        headers=headers2
+    )
+    assert update_unauth_res.status_code == 404
+

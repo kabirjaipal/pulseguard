@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.endpoint import Endpoint
 from app.models.monitoring_result import MonitoringResult
-from app.schemas.endpoint import EndpointCreate, EndpointOut
+from app.schemas.endpoint import EndpointCreate, EndpointOut, EndpointUpdate
 from app.schemas.monitoring_result import MonitoringResultOut
 from app.core.redis_client import redis_client
 from app.core.limiter import RateLimiter
@@ -233,4 +233,33 @@ def trigger_ping_manually(
     from app.core.tasks import ping_endpoint_task
     ping_endpoint_task.delay(endpoint.id)
     return {"message": "Check triggered and queued."}
+
+@router.put("/{endpoint_id}", response_model=EndpointOut)
+def update_endpoint(
+    endpoint_id: int,
+    endpoint_update: EndpointUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update a monitored API endpoint's settings."""
+    # 1. Fetch the endpoint and check project ownership
+    endpoint = db.query(Endpoint).join(Project).filter(
+        Endpoint.id == endpoint_id,
+        Project.owner_id == current_user.id
+    ).first()
+    
+    if not endpoint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Endpoint not found or not owned by you."
+        )
+        
+    # 2. Apply updates
+    update_data = endpoint_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(endpoint, key, value)
+        
+    db.commit()
+    db.refresh(endpoint)
+    return endpoint
 

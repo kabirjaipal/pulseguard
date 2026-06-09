@@ -11,6 +11,13 @@ class EndpointBase(BaseModel):
 class EndpointCreate(EndpointBase):
     project_id: int
 
+class EndpointUpdate(BaseModel):
+    name: str | None = None
+    url: str | None = None
+    method: str | None = None
+    check_interval: int | None = None
+    is_active: bool | None = None
+
 class EndpointOut(EndpointBase):
     id: int
     project_id: int

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { 
   Activity, Plus, LogOut, Globe, Clock, Server, AlertTriangle, 
-  CheckCircle2, XCircle, ChevronRight, Play, Trash2, X, RefreshCw, Sparkles, Loader2
+  CheckCircle2, XCircle, ChevronRight, Play, Trash2, X, RefreshCw, Sparkles, Loader2, Edit
 } from "lucide-react";
 import { API_URL, WS_URL } from "../config";
 
@@ -67,6 +67,15 @@ export default function DashboardPage() {
   const [endpointMethod, setEndpointMethod] = useState("GET");
   const [endpointInterval, setEndpointInterval] = useState(60);
   const [endpointProjectId, setEndpointProjectId] = useState<number | "">("");
+
+  // Edit Endpoint Modal State
+  const [isEditEndpointModalOpen, setIsEditEndpointModalOpen] = useState(false);
+  const [editingEndpointId, setEditingEndpointId] = useState<number | null>(null);
+  const [editEndpointName, setEditEndpointName] = useState("");
+  const [editEndpointUrl, setEditEndpointUrl] = useState("");
+  const [editEndpointMethod, setEditEndpointMethod] = useState("GET");
+  const [editEndpointInterval, setEditEndpointInterval] = useState(60);
+  const [editEndpointActive, setEditEndpointActive] = useState(true);
 
   // Refs for tracking websocket connection
   const socketRef = useRef<WebSocket | null>(null);
@@ -355,6 +364,62 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Error creating endpoint:", err);
+    }
+  };
+
+  const openEditEndpointModal = (e: React.MouseEvent, ep: Endpoint) => {
+    e.stopPropagation(); // prevent row click redirect
+    setEditingEndpointId(ep.id);
+    setEditEndpointName(ep.name);
+    setEditEndpointUrl(ep.url);
+    setEditEndpointMethod(ep.method);
+    setEditEndpointInterval(ep.check_interval);
+    setEditEndpointActive(ep.is_active);
+    setIsEditEndpointModalOpen(true);
+  };
+
+  const handleUpdateEndpoint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEndpointId || !token || !editEndpointName.trim() || !editEndpointUrl.trim()) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/endpoints/${editingEndpointId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editEndpointName,
+          url: editEndpointUrl,
+          method: editEndpointMethod,
+          check_interval: editEndpointInterval,
+          is_active: editEndpointActive,
+        }),
+      });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
+      if (response.ok) {
+        const updatedEp = await response.json();
+        
+        // Retain the latest_result from the previous state
+        setEndpoints((prev) =>
+          prev.map((ep) =>
+            ep.id === editingEndpointId
+              ? { ...updatedEp, latest_result: ep.latest_result }
+              : ep
+          )
+        );
+        
+        setIsEditEndpointModalOpen(false);
+        setEditingEndpointId(null);
+      }
+    } catch (err) {
+      console.error("Error updating endpoint:", err);
     }
   };
 
@@ -708,7 +773,15 @@ export default function DashboardPage() {
                             title="Trigger Instant Check"
                             className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 border border-transparent transition-all"
                           >
-                            <Play className="w-4 h-4 fill-slate-500 hover:fill-slate-800" />
+                            <Play className="w-4 h-4 fill-slate-750 hover:fill-slate-800" />
+                          </button>
+
+                          <button
+                            onClick={(e) => openEditEndpointModal(e, ep)}
+                            title="Edit Endpoint"
+                            className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-all"
+                          >
+                            <Edit className="w-4 h-4" />
                           </button>
                           
                           <button
@@ -898,6 +971,104 @@ export default function DashboardPage() {
                   className="bg-primary hover:bg-primary-hover px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
                 >
                   Start Monitoring
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Endpoint Modal */}
+      {isEditEndpointModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-card-border p-6 shadow-xl bg-white animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-900">Edit Monitored Route</h3>
+              <button onClick={() => setIsEditEndpointModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateEndpoint} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Route Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editEndpointName}
+                  onChange={(e) => setEditEndpointName(e.target.value)}
+                  placeholder="e.g. Users Healthcheck"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-1">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Method</label>
+                  <select
+                    value={editEndpointMethod}
+                    onChange={(e) => setEditEndpointMethod(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
+                  >
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Interval (Seconds)</label>
+                  <select
+                    value={editEndpointInterval}
+                    onChange={(e) => setEditEndpointInterval(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
+                  >
+                    <option value={10}>10s (Real-time)</option>
+                    <option value={30}>30s</option>
+                    <option value={60}>60s (1 min)</option>
+                    <option value={300}>300s (5 min)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Target URL</label>
+                <input
+                  type="url"
+                  required
+                  value={editEndpointUrl}
+                  onChange={(e) => setEditEndpointUrl(e.target.value)}
+                  placeholder="https://api.yourdomain.com/health"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="editEndpointActive"
+                  checked={editEndpointActive}
+                  onChange={(e) => setEditEndpointActive(e.target.checked)}
+                  className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                />
+                <label htmlFor="editEndpointActive" className="text-sm text-slate-700 font-medium select-none">
+                  Enable checking for this route
+                </label>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditEndpointModalOpen(false)}
+                  className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-750 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-hover px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

@@ -5,7 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import { 
   ArrowLeft, Activity, Play, AlertTriangle, CheckCircle2, 
-  XCircle, Clock, Globe, ShieldAlert, Sparkles, RefreshCw, Server, Terminal, Loader2
+  XCircle, Clock, Globe, ShieldAlert, Sparkles, RefreshCw, Server, Terminal, Loader2,
+  Edit, X
 } from "lucide-react";
 import { API_URL, WS_URL } from "../../config";
 
@@ -53,6 +54,24 @@ export default function EndpointDetailPage() {
   const [pinging, setPinging] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Modal States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editUrl, setEditUrl] = useState("");
+  const [editMethod, setEditMethod] = useState("GET");
+  const [editInterval, setEditInterval] = useState(60);
+  const [editActive, setEditActive] = useState(true);
+
+  const openEditModal = () => {
+    if (!endpoint) return;
+    setEditName(endpoint.name);
+    setEditUrl(endpoint.url);
+    setEditMethod(endpoint.method);
+    setEditInterval(endpoint.check_interval);
+    setEditActive(endpoint.is_active);
+    setIsEditModalOpen(true);
+  };
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -248,6 +267,42 @@ export default function EndpointDetailPage() {
       setError(err.message);
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const handleUpdateEndpoint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !token || !editName.trim() || !editUrl.trim()) return;
+
+    try {
+      setError("");
+      const res = await fetch(`${API_URL}/api/endpoints/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editName,
+          url: editUrl,
+          method: editMethod,
+          check_interval: editInterval,
+          is_active: editActive,
+        }),
+      });
+
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed to update endpoint settings.");
+
+      const updatedEp = await res.json();
+      setEndpoint(updatedEp);
+      setIsEditModalOpen(false);
+    } catch (err: any) {
+      setError(err.message || "An error occurred during update.");
     }
   };
 
@@ -453,6 +508,15 @@ export default function EndpointDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Edit Endpoint Button */}
+            <button
+              onClick={openEditModal}
+              className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-4 py-2.5 rounded-xl text-sm transition-all"
+            >
+              <Edit className="w-4 h-4 text-slate-650" />
+              <span>Edit</span>
+            </button>
+
             <button
               onClick={handleTriggerPing}
               disabled={pinging}
@@ -604,6 +668,105 @@ export default function EndpointDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Edit Endpoint Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-md rounded-2xl border border-card-border p-6 shadow-xl bg-white animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-900">Edit Monitored Route</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateEndpoint} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Route Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Users Healthcheck"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-1">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Method</label>
+                  <select
+                    value={editMethod}
+                    onChange={(e) => setEditMethod(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
+                  >
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Interval (Seconds)</label>
+                  <select
+                    value={editInterval}
+                    onChange={(e) => setEditInterval(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary"
+                  >
+                    <option value={10}>10s (Real-time)</option>
+                    <option value={30}>30s</option>
+                    <option value={60}>60s (1 min)</option>
+                    <option value={300}>300s (5 min)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Target URL</label>
+                <input
+                  type="url"
+                  required
+                  value={editUrl}
+                  onChange={(e) => setEditUrl(e.target.value)}
+                  placeholder="https://api.yourdomain.com/health"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="editActive"
+                  checked={editActive}
+                  onChange={(e) => setEditActive(e.target.checked)}
+                  className="rounded border-slate-305 text-primary focus:ring-primary h-4 w-4"
+                />
+                <label htmlFor="editActive" className="text-sm text-slate-705 font-medium select-none">
+                  Enable checking for this route
+                </label>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-750 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-hover px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import datetime
 import json
 import logging
 import httpx
-from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import MaxRetriesExceededError, Retry
 from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.endpoint import Endpoint
@@ -96,16 +96,14 @@ def ping_endpoint_task(self, endpoint_id: int):
             else:
                 error_message = f"Non-2xx status code returned: {status_code}"
                 # Retry for transient application/server errors (e.g. 500, 503)
-                try:
+                if self.request.retries < self.max_retries:
                     raise self.retry(countdown=5)
-                except MaxRetriesExceededError:
-                    pass # Out of retries, mark as unhealthy
                 
         except httpx.RequestError as exc:
             # Captures timeouts, connection errors, DNS errors, etc.
-            try:
+            if self.request.retries < self.max_retries:
                 raise self.retry(exc=exc, countdown=5)
-            except MaxRetriesExceededError:
+            else:
                 response_time_ms = int((time.time() - start_time) * 1000)
                 is_healthy = False
                 error_message = f"Network request failed after retries: {str(exc)}"
@@ -233,6 +231,8 @@ def ping_endpoint_task(self, endpoint_id: int):
             "consecutive_failures": endpoint.consecutive_failures,
             "error": error_message
         }
+    except (Retry, MaxRetriesExceededError):
+        raise
     except Exception as e:
         db.rollback()
         return f"Error executing check for endpoint {endpoint_id}: {str(e)}"
