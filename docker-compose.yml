@@ -112,29 +112,17 @@ services:
     depends_on:
       - web
       - client
-
-  prometheus:
-    image: prom/prometheus:v2.45.0
-    container_name: pulseguard-prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+  openobserve:
+    image: public.ecr.aws/h1m9u2a6/openobserve:latest
+    container_name: pulseguard-openobserve
     ports:
-      - "9090:9090"
-    depends_on:
-      - web
-
-  grafana:
-    image: grafana/grafana:10.0.0
-    container_name: pulseguard-grafana
+      - "5080:5080"
+    environment:
+      - ZO_ROOT_USER_EMAIL=admin@pulseguard.io
+      - ZO_ROOT_USER_PASSWORD=adminpassword123
     volumes:
-      - grafana_data:/var/lib/grafana
-    ports:
-      - "3001:3000"
-    depends_on:
-      - prometheus
+      - openobserve_data:/data
 
 volumes:
   postgres_data:
-  prometheus_data:
-  grafana_data:
+  openobserve_data:
