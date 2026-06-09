@@ -52,27 +52,38 @@ async def redis_pubsub_listener():
     """
     Subscribes to the 'pulseguard_updates' Redis channel and broadcasts
     messages to the appropriate WebSocket clients.
+    Automatically reconnects on connection errors or timeouts.
     """
     logger.info("Starting Redis Pub/Sub WebSocket broadcast listener...")
-    async_redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
-    pubsub = async_redis.pubsub()
-    await pubsub.subscribe("pulseguard_updates")
-    
-    try:
-        async for message in pubsub.listen():
-            if message["type"] == "message":
-                try:
-                    payload = json.loads(message["data"])
-                    owner_id = payload.get("owner_id")
-                    if owner_id:
-                        await manager.broadcast_to_user(int(owner_id), payload)
-                except Exception as json_err:
-                    logger.error("Error parsing Redis Pub/Sub message data: %s", str(json_err), exc_info=True)
-    except asyncio.CancelledError:
-        logger.info("Redis Pub/Sub listener task cancelled.")
-    except Exception as e:
-        logger.error("Error in Redis Pub/Sub listener: %s", str(e), exc_info=True)
-    finally:
-        await pubsub.unsubscribe("pulseguard_updates")
-        await async_redis.close()
+    while True:
+        pubsub = None
+        async_redis = None
+        try:
+            async_redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            pubsub = async_redis.pubsub()
+            await pubsub.subscribe("pulseguard_updates")
+            
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    try:
+                        payload = json.loads(message["data"])
+                        owner_id = payload.get("owner_id")
+                        if owner_id:
+                            await manager.broadcast_to_user(int(owner_id), payload)
+                    except Exception as json_err:
+                        logger.error("Error parsing Redis Pub/Sub message data: %s", str(json_err), exc_info=True)
+        except asyncio.CancelledError:
+            logger.info("Redis Pub/Sub listener task cancelled.")
+            break
+        except Exception as e:
+            logger.error("Error in Redis Pub/Sub listener: %s. Reconnecting in 5 seconds...", str(e), exc_info=True)
+            await asyncio.sleep(5)
+        finally:
+            try:
+                if pubsub:
+                    await pubsub.unsubscribe("pulseguard_updates")
+                if async_redis:
+                    await async_redis.close()
+            except Exception:
+                pass
 
