@@ -66,10 +66,10 @@ PYTHONPATH=. uvicorn app.main:app --reload --port 8000
 In separate terminals (with `.venv` active), run the background workers:
 ```bash
 # Start Celery Worker
-celery -A app.core.tasks.celery_app worker --loglevel=info
+PYTHONPATH=. celery -A app.core.tasks.celery_app worker --loglevel=info
 
 # Start Celery Beat
-celery -A app.core.tasks.celery_app beat --loglevel=info
+PYTHONPATH=. celery -A app.core.tasks.celery_app beat --loglevel=info
 ```
 
 #### 2. Frontend Setup
