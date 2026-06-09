@@ -59,6 +59,7 @@ cd server
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env       # Copy and configure environment variables
 python seed.py
 PYTHONPATH=. uvicorn app.main:app --reload --port 8000
 ```
@@ -75,6 +76,7 @@ celery -A app.core.tasks.celery_app beat --loglevel=info
 ```bash
 cd client
 npm install
+cp .env.local.example .env.local  # Copy frontend environment variables
 npm run dev
 ```
 Open `http://localhost:3000` in your browser.
