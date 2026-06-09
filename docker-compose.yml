@@ -113,7 +113,7 @@ services:
       - web
       - client
   openobserve:
-    image: public.ecr.aws/h1m9u2a6/openobserve:latest
+    image: public.ecr.aws/zinclabs/openobserve:latest
     container_name: pulseguard-openobserve
     ports:
       - "5080:5080"
