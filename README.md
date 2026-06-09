@@ -1,275 +1,89 @@
-# AI-Powered API Monitoring & Incident Analysis Platform
+# PulseGuard 🛡️ — AI-Powered API Monitoring & Incident Analysis Platform
 
-## Goal
+PulseGuard is an API monitoring platform that continuously checks the health of target APIs, triggers alerts when they go offline, and uses AI to diagnose why they failed.
 
-Build a production-style backend system that monitors APIs, detects failures, stores logs, analyzes incidents with AI, and provides a real-time dashboard.
-
----
-
-# PHASE 1 — Foundation (Week 1)
-
-## Learn/Build
-
-- FastAPI project setup
-- PostgreSQL connection
-- SQLAlchemy models
-- Docker basics
-
-## Features
-
-- User model
-- Project model
-- Endpoint model
-- JWT authentication
-
-## Focus
-
-- clean folder structure
-- modular architecture
-- proper DB relationships
-
-## Deliverable
-
-Users can:
-
-- signup/login
-- create projects
-- add API endpoints
+It features a real-time Next.js dashboard that receives instant status updates via WebSockets when API health changes.
 
 ---
 
-# PHASE 2 — Core Monitoring System (Week 2)
+## 🏗️ How it Works
 
-## Learn/Build
-
-- Celery workers
-- Redis setup
-- Background jobs
-
-## Features
-
-- scheduled API checks
-- save response time
-- save status codes
-- save logs
-
-## Focus
-
-- async jobs
-- retries
-- DB schema design
-
-## Deliverable
-
-System automatically monitors endpoints every X seconds.
+1. **Next.js Frontend**: Displays live API status, latency charts, and AI incident logs.
+2. **FastAPI Backend**: Handles user authentication, configuration, and WebSocket streams.
+3. **Celery Worker & Redis**: Runs API health checks in the background to keep the app fast.
+4. **AI Diagnostics**: Queries LLMs to analyze logs and suggest troubleshooting steps.
+5. **Nginx Proxy**: Routes frontend and backend traffic through a single port.
+6. **Prometheus & Grafana**: Tracks API requests and response latencies.
 
 ---
 
-# PHASE 3 — Alert System (Week 3)
+## ⚡ Key Features
 
-## Learn/Build
-
-- failure detection
-- retry strategies
-- notification flow
-
-## Features
-
-- failed endpoint alerts
-- retry failed checks
-- email/webhook alerts
-
-## Focus
-
-- reliability
-- failure handling
-
-## Deliverable
-
-Users receive alerts when APIs fail repeatedly.
+*   **Background Checks**: Offloads API checks to background workers (Celery + Redis) so the web server stays fast.
+*   **Smart Alerts**: Sends emails and webhooks only when an API's status changes (e.g., goes offline or recovers) to avoid alert spam.
+*   **AI Diagnostics**: Automatically generates root-cause analyses and suggestions using AI when an API fails.
+*   **Fast Caching**: Caches the latest API check results in Redis for instant dashboard loads.
+*   **API Protection**: Protects sign-up, login, and check routes with a custom Redis rate limiter.
+*   **Real-time Streaming**: Streams live API updates directly to the browser client via WebSockets.
 
 ---
 
-# PHASE 4 — Performance & Scalability (Week 4)
+## 🛠️ Tech Stack
 
-## Learn/Build
-
-- Redis caching
-- rate limiting
-- DB indexing
-
-## Features
-
-- cache latest endpoint results
-- optimize slow queries
-- protect APIs
-
-## Focus
-
-- backend optimization
-- scaling basics
-
-## Deliverable
-
-Fast API responses with reduced DB load.
+*   **Backend**: Python, FastAPI, SQLAlchemy ORM, PostgreSQL, Redis, Celery, HTTPX, Groq SDK
+*   **Frontend**: Next.js (App Router), React, Tailwind CSS, WebSockets
+*   **DevOps**: Docker, Nginx, Prometheus, Grafana
+*   **Testing**: Pytest
 
 ---
 
-# PHASE 5 — AI Incident Analysis (Week 5)
+## 🚀 How to Run
 
-## Learn/Build
-
-- Groq API integration
-- prompt engineering basics
-
-## Features
-
-- analyze failed logs
-- generate root-cause summaries
-- detect recurring patterns
-
-## Focus
-
-- practical AI usage
-- backend + AI integration
-
-## Deliverable
-
-AI explains likely causes of incidents.
+### Option A: With Docker (Recommended)
+1. Clone the repository and run:
+   ```bash
+   docker compose up --build
+   ```
+2. Access the services:
+   *   **Frontend UI**: `http://localhost`
+   *   **Backend API Docs**: `http://localhost/api/docs`
+   *   **Grafana Dashboard**: `http://localhost:3001` (Login: `admin` / `admin`)
 
 ---
 
-# PHASE 6 — Real-Time Dashboard (Week 6)
+### Option B: Local Setup (Without Docker)
 
-## Learn/Build
+#### 1. Backend Setup
+```bash
+cd server
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python seed.py
+PYTHONPATH=. uvicorn app.main:app --reload --port 8000
+```
+In separate terminals (with `.venv` active), run the background workers:
+```bash
+# Start Celery Worker
+celery -A app.core.tasks.celery_app worker --loglevel=info
 
-- Next.js
-- WebSockets
+# Start Celery Beat
+celery -A app.core.tasks.celery_app beat --loglevel=info
+```
 
-## Features
-
-- live status updates
-- charts
-- incident history
-
-## Focus
-
-- realtime systems
-- frontend integration
-
-## Deliverable
-
-Live monitoring dashboard.
-
----
-
-# PHASE 7 — Production Engineering (Week 7)
-
-## Learn/Build
-
-- structured logging
-- testing
-- CI/CD
-
-## Features
-
-- pytest tests
-- GitHub Actions
-- centralized error handling
-
-## Focus
-
-- production readiness
-
-## Deliverable
-
-Professional backend workflow.
+#### 2. Frontend Setup
+```bash
+cd client
+npm install
+npm run dev
+```
+Open `http://localhost:3000` in your browser.
 
 ---
 
-# PHASE 8 — Deployment & Observability (Week 8)
-
-## Learn/Build
-
-- Docker Compose
-- Prometheus
-- Grafana
-- Nginx basics
-
-## Features
-
-- containerized services
-- metrics dashboard
-- monitoring infrastructure
-
-## Focus
-
-- DevOps basics
-- observability
-
-## Deliverable
-
-Fully deployed production-style system.
-
----
-
-# FINAL STACK
-
-## Backend
-
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Redis
-- Celery
-
-## Frontend
-
-- Next.js
-- TypeScript
-- Tailwind
-
-## Infra
-
-- Docker
-- GitHub Actions
-- Prometheus
-- Grafana
-- Nginx
-
-## AI
-
-- OpenAI API
-
----
-
-# WHAT THIS PROJECT PROVES
-
-- backend engineering
-- distributed systems basics
-- async processing
-- caching
-- scalability
-- observability
-- AI integration
-- SaaS architecture
-- production workflows
-
----
-
-# FINAL RULES
-
-- Build slowly
-- Understand every file
-- Explain every architecture decision
-- Never copy blindly
-- Backend quality > frontend beauty
-- One deep project > many small apps
-
-
-# Important 
-ik python basic but not advance so build in a way like you are teaching me like don't add all pkgs once or create files all once go step by step teach every step what it do why use this pkg  and save progess in progress.md too 
-
-## Development Rules
-- **No Automatic Installation:** The AI agent must not execute heavy commands or package installations (like `pip install` or `apt install`) directly. It should present the commands to the user to run manually.
-- **Package Tracking:** All project dependencies must be listed and tracked in `server/requirements.txt`.
+## 🧪 Running Tests
+To run backend automated tests:
+```bash
+cd server
+PYTHONPATH=. pytest
+```
