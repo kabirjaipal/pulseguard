@@ -44,6 +44,7 @@ It features a real-time Next.js dashboard that receives instant status updates v
    ```bash
    docker compose up --build
    ```
+   *(Note: On Linux, if you get a permission denied error, run with `sudo docker compose up --build` or add your user to the `docker` group).*
 2. Access the services:
    *   **Frontend UI**: `http://localhost`
    *   **Backend API Docs**: `http://localhost/api/docs`
