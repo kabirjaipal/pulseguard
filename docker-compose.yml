@@ -115,11 +115,13 @@ services:
   openobserve:
     image: public.ecr.aws/zinclabs/openobserve:latest
     container_name: pulseguard-openobserve
+    user: "0:0"
     ports:
       - "5080:5080"
     environment:
       - ZO_ROOT_USER_EMAIL=admin@pulseguard.io
       - ZO_ROOT_USER_PASSWORD=adminpassword123
+      - ZO_DATA_DIR=/data
     volumes:
       - openobserve_data:/data
 
