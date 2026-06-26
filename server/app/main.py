@@ -92,10 +92,18 @@ async def generic_exception_handler(request: Request, exc: Exception):
     )
 
 
-# CORS configurations - Allow local Next.js dev server
+# CORS configurations - Allow local Next.js dev server and Vercel deployments
+allowed_origins = [
+    "http://localhost:3000",
+    "https://pulseguard-sable.vercel.app"
+]
+cors_origins_env = os.environ.get("CORS_ORIGINS")
+if cors_origins_env:
+    allowed_origins.extend([origin.strip() for origin in cors_origins_env.split(",") if origin.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
