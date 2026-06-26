@@ -55,23 +55,21 @@ It features a real-time Next.js dashboard that receives instant status updates v
 ### Option B: Local Setup (Without Docker)
 
 #### 1. Backend Setup
-```bash
-cd server
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env       # Copy and configure environment variables
-python seed.py
-PYTHONPATH=. uvicorn app.main:app --reload --port 8000
-```
-In separate terminals (with `.venv` active), run the background workers:
-```bash
-# Start Celery Worker
-PYTHONPATH=. celery -A app.core.tasks.celery_app worker --loglevel=info
-
-# Start Celery Beat
-PYTHONPATH=. celery -A app.core.tasks.celery_app beat --loglevel=info
-```
+1. **Prepare PostgreSQL**: Make sure your local PostgreSQL database server is running and create a database named `pulseguard`.
+2. **Setup environment & seed data**:
+   ```bash
+   cd server
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   cp .env.example .env       # Copy and configure environment variables
+   python seed.py             # Seed initial users and monitoring endpoints
+   ```
+3. **Start the API Server**:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+   *(Note: The Celery worker and beat tasks are now automatically spawned as subprocesses by the FastAPI application startup. You do not need to run them in separate terminals.)*
 
 #### 2. Frontend Setup
 ```bash
@@ -88,5 +86,5 @@ Open `http://localhost:3000` in your browser.
 To run backend automated tests:
 ```bash
 cd server
-PYTHONPATH=. pytest
+pytest
 ```

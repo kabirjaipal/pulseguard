@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Ensure the root of the server directory is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import asyncio
 import logging
 from contextlib import asynccontextmanager
@@ -20,17 +26,39 @@ logger = logging.getLogger("app.main")
 # but for learning and quick development, we let SQLAlchemy generate them.
 Base.metadata.create_all(bind=engine)
 
+import subprocess
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: Start the Redis Pub/Sub listener in the background
+    # Prepare environment for subprocesses to inherit path resolution
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    # Startup logic: Start Celery worker and beat as background processes
+    celery_worker = subprocess.Popen(
+        [sys.executable, "-m", "celery", "-A", "app.core.tasks.celery_app", "worker", "--loglevel=info"],
+        env=env
+    )
+    celery_beat = subprocess.Popen(
+        [sys.executable, "-m", "celery", "-A", "app.core.tasks.celery_app", "beat", "--loglevel=info"],
+        env=env
+    )
+
+    # Start the Redis Pub/Sub listener in the background
     pubsub_task = asyncio.create_task(redis_pubsub_listener())
     yield
-    # Shutdown logic: Cancel the task
+    # Shutdown logic: Terminate Celery subprocesses and cancel pubsub task
+    celery_worker.terminate()
+    celery_beat.terminate()
     pubsub_task.cancel()
     try:
         await pubsub_task
     except asyncio.CancelledError:
         pass
+    
+    # Wait for subprocesses to clean up
+    celery_worker.wait()
+    celery_beat.wait()
 
 # 1. Create a FastAPI instance with lifespan event handlers
 app = FastAPI(
