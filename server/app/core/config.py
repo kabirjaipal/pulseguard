@@ -2,10 +2,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # 1. Database configurations
-    DATABASE_URL: str
+    DATABASE_URL: str | None = None
 
     # 2. JWT & Security configurations
-    SECRET_KEY: str
+    SECRET_KEY: str = "dev_secret_key_pulseguard_change_in_production_1234567890"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

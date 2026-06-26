@@ -2,9 +2,32 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
-# 1. Create the database engine.
-# The engine is the entry point to our database, managing connection pools.
-engine = create_engine(settings.DATABASE_URL)
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+db_url = settings.DATABASE_URL
+engine = None
+
+def get_sqlite_engine():
+    db_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../pulseguard.db"))
+    logger.warning("No working PostgreSQL connection. Falling back to local SQLite database: %s", db_file_path)
+    return create_engine(f"sqlite:///{db_file_path}", connect_args={"check_same_thread": False})
+
+if db_url and db_url.startswith("postgresql"):
+    try:
+        # Create a test engine to check connectivity
+        test_engine = create_engine(db_url)
+        with test_engine.connect() as conn:
+            pass
+        engine = test_engine
+        logger.info("Successfully connected to PostgreSQL database.")
+    except Exception as e:
+        logger.error("Failed to connect to PostgreSQL database: %s", str(e))
+        engine = get_sqlite_engine()
+else:
+    engine = get_sqlite_engine()
 
 # 2. Create SessionLocal class.
 # Each instance of SessionLocal will represent a single database session/transaction.
