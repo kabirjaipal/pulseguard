@@ -40,46 +40,8 @@ services:
     env_file:
       - ./server/.env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@pulseguard-db:5432/pulseguard
-      - REDIS_URL=redis://pulseguard-redis:6379/0
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  celery_worker:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: pulseguard-celery-worker
-    command: celery -A app.core.tasks.celery_app worker --loglevel=info
-    volumes:
-      - ./server:/workspace
-    env_file:
-      - ./server/.env
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@pulseguard-db:5432/pulseguard
-      - REDIS_URL=redis://pulseguard-redis:6379/0
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  celery_beat:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: pulseguard-celery-beat
-    command: celery -A app.core.tasks.celery_app beat --loglevel=info
-    volumes:
-      - ./server:/workspace
-    env_file:
-      - ./server/.env
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@pulseguard-db:5432/pulseguard
-      - REDIS_URL=redis://pulseguard-redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@pulseguard-db:5432/pulseguard}
+      - REDIS_URL=${REDIS_URL:-redis://pulseguard-redis:6379/0}
     depends_on:
       db:
         condition: service_healthy
@@ -91,14 +53,16 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost
-        - NEXT_PUBLIC_WS_URL=ws://localhost
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost}
+        - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-ws://localhost}
     container_name: pulseguard-client
     ports:
       - "3000:3000"
+    env_file:
+      - ./client/.env.local
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost
-      - NEXT_PUBLIC_WS_URL=ws://localhost
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-ws://localhost}
     depends_on:
       - web
 

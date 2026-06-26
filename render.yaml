@@ -1,0 +1,40 @@
+services:
+  # 1. FastAPI Backend (also runs Celery worker & beat automatically)
+  - type: web
+    name: pulseguard-backend
+    runtime: python
+    rootDir: server
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pulseguard-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: pulseguard-redis
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: OPENROUTER_API_KEY
+        sync: false # User will fill this in Render UI
+      - key: GROQ_MODEL
+        value: llama3-8b-8192
+
+# 2. PostgreSQL Database
+databases:
+  - name: pulseguard-db
+    databaseName: pulseguard
+    user: postgres
+
+# 3. Redis Cache & Message Broker
+redis:
+  - name: pulseguard-redis
+    plan: free # Render Redis free tier is available in some regions, or basic plan
+    ipAllowList: [] # Allow internal access only
