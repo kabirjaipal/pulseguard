@@ -37,4 +37,3 @@ services:
 databases:
   - name: pulseguard-db
     databaseName: pulseguard
-    user: postgres
