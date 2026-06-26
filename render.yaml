@@ -12,10 +12,7 @@ services:
           name: pulseguard-db
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: pulseguard-redis
-          property: connectionString
+        sync: false # User will paste their Upstash Redis URL here
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
@@ -27,13 +24,7 @@ services:
       - key: GROQ_MODEL
         value: llama3-8b-8192
 
-  # 2. Redis Cache & Message Broker
-  - type: redis
-    name: pulseguard-redis
-    plan: free # Render Redis free tier is available in some regions, or basic plan
-    ipAllowList: [] # Allow internal access only
-
-# 3. PostgreSQL Database
+# 2. PostgreSQL Database
 databases:
   - name: pulseguard-db
     databaseName: pulseguard

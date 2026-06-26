@@ -60,13 +60,19 @@ async def redis_pubsub_listener():
         pubsub = None
         async_redis = None
         try:
-            # Set socket_timeout=None to block indefinitely and health_check_interval to keep connection alive
-            async_redis = Redis.from_url(
-                settings.REDIS_URL, 
-                decode_responses=True, 
-                socket_timeout=None, 
-                health_check_interval=30
-            )
+            from app.core.redis_client import redis_available, InMemoryRedis
+            
+            if redis_available:
+                # Set socket_timeout=None to block indefinitely and health_check_interval to keep connection alive
+                async_redis = Redis.from_url(
+                    settings.REDIS_URL, 
+                    decode_responses=True, 
+                    socket_timeout=None, 
+                    health_check_interval=30
+                )
+            else:
+                async_redis = InMemoryRedis()
+                
             pubsub = async_redis.pubsub()
             await pubsub.subscribe("pulseguard_updates")
             

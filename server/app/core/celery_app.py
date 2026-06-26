@@ -1,11 +1,17 @@
 from celery import Celery
 from app.core.config import settings
 
-# Initialize Celery app with Redis as both the broker and the backend
+from app.core.redis_client import redis_available
+
+# Determine broker and backend URL (fallback to in-memory if Redis is offline)
+broker_url = settings.REDIS_URL if redis_available else "memory://"
+backend_url = settings.REDIS_URL if redis_available else "cache+memory://"
+
+# Initialize Celery app
 celery_app = Celery(
     "pulseguard",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL
+    broker=broker_url,
+    backend=backend_url
 )
 
 # Load additional configurations
